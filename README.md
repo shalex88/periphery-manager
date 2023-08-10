@@ -6,4 +6,5 @@
 
 ## TODO:
 
-* Is write/read is needed for UART communication?
+* Who is in charge to open bus connection?
+* Commands inside periphery class to be able to use it without commands? 

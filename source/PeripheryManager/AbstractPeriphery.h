@@ -12,10 +12,11 @@ public:
     virtual uint8_t init() = 0;
     virtual uint8_t deinit() = 0;
     virtual uint8_t getStatus() = 0;
-    std::vector<uint8_t> readData();
-    uint8_t writeData(std::vector<uint8_t>& tx_data);
+    uint8_t getDataSyncroniously(std::vector<uint8_t> &tx_data);
 private:
     std::shared_ptr<CommunicationInterface> interface_;
+    std::vector<uint8_t> readData();
+    uint8_t writeData(std::vector<uint8_t>& tx_data);
 };
 
 

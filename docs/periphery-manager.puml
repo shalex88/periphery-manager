@@ -4,10 +4,11 @@ skinparam classAttributeIconSize 0
 
 'Classes
 abstract AbstractPeriphery {
-    -std::shared_ptr<CommunicationInterface> communication_interface_;
     #AbstractPeriphery(std::shared_ptr<CommunicationInterface> interface)
-    +writeData(const std::vector<uint8_t> data) : void
-    +readData() : std::vector<uint8_t>
+    -std::shared_ptr<CommunicationInterface> communication_interface_;
+    -writeData(const std::vector<uint8_t> data) : void
+    -readData() : std::vector<uint8_t>
+    +getDataSyncroniously(std::vector<uint8_t> &tx_data) : uint8_t
     +{abstract}init() : uint8_t
     +{abstract}deinit() : uint8_t
     +{abstract}getStatus() : uint8_t
@@ -25,6 +26,7 @@ class TemperatureSensor {
     +init() : uint8_t
     +deinit() : uint8_t
     +getStatus() : uint8_t
+    +getTemperature() : uint8_t
 }
 
 class Camera {
@@ -55,12 +57,13 @@ class Ethernet {
 }
 
 object UserCode {
-    auto communication_interface = std::make_shared<Uart>();
-    auto temp_sensor = std::make_shared<TemperatureSensor>(communication_interface);
+    auto communication_interface = std::make_shared<CommunicationMock>();
+    auto temp_sensor = std::make_shared<SensorMock>(communication_interface);
     \n
     temp_sensor->init();
-    temp_sensor->getStatus();
-    temp_sensor->getTemperature();
+    std::cout << static_cast<int>(temp_sensor->getStatus()) << std::endl;
+    std::cout << static_cast<int>(temp_sensor->getTemperature()) << std::endl;
+    temp_sensor->deinit();
 }
 
 'Relations
