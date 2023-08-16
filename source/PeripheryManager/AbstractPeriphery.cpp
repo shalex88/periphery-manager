@@ -4,26 +4,30 @@
 std::vector<uint8_t> AbstractPeriphery::readData() {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-    return interface_->read();
+    auto rx_package = communication_interface_->read();
+    auto data = protocol_interface_->deserialize(rx_package);
+
+    return data;
 }
 
-uint8_t AbstractPeriphery::writeData(std::vector<uint8_t> &tx_data) {
+uint8_t AbstractPeriphery::writeData(const std::vector<uint8_t> &tx_data) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-    return interface_->write(tx_data);
+    auto tx_package = protocol_interface_->serialize(tx_data);
+
+    return communication_interface_->write(tx_package);
 }
 
-uint8_t AbstractPeriphery::getDataSyncroniously(std::vector<uint8_t>& tx_data) {
+std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-    if(writeData(tx_data) == tx_data.size()) {
-        auto respose_rx = readData();
+    std::vector<uint8_t> respose_rx;
 
-        if(!respose_rx.empty()) {
-            auto data = respose_rx.at(1);
-            return data;
-        }
+    if(writeData(tx_data) > tx_data.size()) { //TODO: how to retceive a serialized packet size?
+        respose_rx = readData();
+    } else {
+        throw std::runtime_error("Not all data was written");
     }
 
-    return 0xff;
+    return respose_rx;
 }
