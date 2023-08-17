@@ -1,56 +1,55 @@
+#include <iostream>
 #include "TemperatureSensorProtocol.h"
 
 std::vector<uint8_t> TemperatureSensorProtocol::serialize(const std::vector<uint8_t> &tx_data) {
-    std::vector<uint8_t> tx_packet;
+    auto tx_packet = Packet(tx_data);
+    std::cout << "TX Packet: " << tx_packet << std::endl;
 
-    tx_packet.push_back('$');
-    tx_packet.push_back(static_cast<uint8_t>(tx_data.size()));
-
-    uint8_t checksum{};
-    for(const auto & data : tx_data) {
-        tx_packet.push_back(data);
-        checksum += data;
-    }
-
-    tx_packet.push_back(checksum);
-
-    return tx_packet;
+    return tx_packet.toVector();
 }
 
-std::vector<uint8_t> TemperatureSensorProtocol::deserialize(const std::vector<uint8_t> &rx_packet) {
-    std::vector<uint8_t> rx_data;
-
-    // Check if packet size is > 2 ($ and size included)
-    if(rx_packet.size() < 3) {
-        return rx_data;
+std::vector<uint8_t> TemperatureSensorProtocol::deserialize(const std::vector<uint8_t>& rx_packet) {
+    if (rx_packet.size() < 3) {
+        throw std::invalid_argument("Packet too small to be valid");
     }
 
-    // Check if packet starts with '$'
-    if(rx_packet[0] != '$') {
-        return rx_data;
+    Packet packet;
+    auto it = rx_packet.begin();
+
+    packet.header = *it++;
+    packet.size = *it++;
+    packet.data.assign(it, it + packet.size);
+    it += packet.size;
+
+    if (rx_packet.end() - it < 1) {
+        throw std::invalid_argument("Packet too small for checksum");
+    }
+    packet.checksum = *it;
+
+    // Validate checksum
+    uint8_t calculated_checksum = 0;
+    for (const auto& byte : packet.data) {
+        calculated_checksum += byte;
+    }
+    if (calculated_checksum != packet.checksum) {
+        throw std::invalid_argument("Checksum doesn't match, packet might be corrupted");
     }
 
-    // Extract data size
-    uint8_t data_size = rx_packet[1];
+    std::cout << "RX Packet: " << packet << std::endl;
 
-    // Check if data size matches the packet
-    if(data_size + 3 != rx_packet.size()) {
-        return rx_data;
+    return packet.data;
+}
+
+std::ostream& operator<<(std::ostream &os, const TemperatureSensorProtocol::Packet &packet) {
+    os << "Header: " << static_cast<char>(packet.header);
+    os << " Size: " << static_cast<int>(packet.size);
+    os << " Data: ";
+
+    for (auto byte: packet.data) {
+        os << static_cast<int>(byte) << " ";
     }
 
-    // Calculate checksum
-    uint8_t checksum = 0;
-    for(std::size_t i = 2; i < data_size + 2; ++i) {
-        checksum += rx_packet[i];
-    }
+    os << " Checksum: " << static_cast<int>(packet.checksum);
 
-    // Check if checksum matches
-    if(checksum != rx_packet.back()) {
-        return rx_data;
-    }
-
-    // Extract data
-    rx_data.assign(rx_packet.begin() + 2, rx_packet.end() - 1);
-
-    return rx_data;
+    return os;
 }
