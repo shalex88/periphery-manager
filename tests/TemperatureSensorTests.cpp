@@ -71,3 +71,34 @@ TEST_F(TemperatureSensorTests, AbleToGet2bytesHumidity) {
 
     EXPECT_EQ(sensor->getHumidity(), 257);
 }
+
+TEST_F(TemperatureSensorTests, ExceptionThrownWhenNowAllPacketWasWrittenToHw) {
+    EXPECT_CALL(*communication_interface, write(testing::_))
+            .WillOnce(testing::Return(1));
+
+    EXPECT_THROW(sensor->getHumidity(), std::runtime_error);
+}
+
+TEST_F(TemperatureSensorTests, ExceptionThrownWhenNowAllPacketWasReadFromHw) {
+    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet = {'$', 2, 1, 1};
+
+    EXPECT_CALL(*communication_interface, write(tx_packet))
+            .WillOnce(testing::Return(tx_packet.size()));
+    EXPECT_CALL(*communication_interface, read())
+            .WillOnce(testing::Return(rx_packet));
+
+    EXPECT_THROW(sensor->getHumidity(), std::runtime_error);
+}
+
+TEST_F(TemperatureSensorTests, ExceptionThrownWhenReceivedPacketChecksumIsWrong) {
+    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet = {'$', 2, 1, 1, 1};
+
+    EXPECT_CALL(*communication_interface, write(tx_packet))
+            .WillOnce(testing::Return(tx_packet.size()));
+    EXPECT_CALL(*communication_interface, read())
+            .WillOnce(testing::Return(rx_packet));
+
+    EXPECT_THROW(sensor->getHumidity(), std::runtime_error);
+}

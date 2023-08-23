@@ -9,8 +9,8 @@ std::vector<uint8_t> TemperatureSensorProtocol::serialize(const std::vector<uint
 }
 
 std::vector<uint8_t> TemperatureSensorProtocol::deserialize(const std::vector<uint8_t>& rx_packet) {
-    if (rx_packet.size() < 3) {
-        throw std::invalid_argument("Packet too small to be valid");
+    if (rx_packet.size() < 4) { //FIXME: replace 4 with the minimal packet size
+        throw std::runtime_error("Packet too small to be valid");
     }
 
     Packet packet;
@@ -21,9 +21,6 @@ std::vector<uint8_t> TemperatureSensorProtocol::deserialize(const std::vector<ui
     packet.data.assign(it, it + packet.size);
     it += packet.size;
 
-    if (rx_packet.end() - it < 1) {
-        throw std::invalid_argument("Packet too small for checksum");
-    }
     packet.checksum = *it;
 
     // Validate checksum
@@ -32,7 +29,7 @@ std::vector<uint8_t> TemperatureSensorProtocol::deserialize(const std::vector<ui
         calculated_checksum += byte;
     }
     if (calculated_checksum != packet.checksum) {
-        throw std::invalid_argument("Checksum doesn't match, packet might be corrupted");
+        throw std::runtime_error("Checksum doesn't match, packet might be corrupted");
     }
 
     std::cout << "RX Packet: " << packet << std::endl;

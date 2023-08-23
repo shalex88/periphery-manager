@@ -51,10 +51,6 @@ uint16_t TemperatureSensor::getHumidity() {
 
     auto rx_data = getDataSyncronously(command[COMMAND::GET_HUMIDITY]);
 
-    if (rx_data.size() < 2) {
-        throw std::runtime_error("Not enough data to represent a uint16_t");
-    }
-
     uint16_t humidity = (static_cast<uint16_t>(rx_data[0]) << 8) | static_cast<uint16_t>(rx_data[1]);
 
     return humidity;
