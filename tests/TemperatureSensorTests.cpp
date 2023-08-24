@@ -91,6 +91,18 @@ TEST_F(TemperatureSensorTests, ExceptionThrownWhenNowAllPacketWasReadFromHw) {
     EXPECT_THROW(sensor->getHumidity(), std::runtime_error);
 }
 
+TEST_F(TemperatureSensorTests, ExceptionThrownWhenPacketIsTooSmall) {
+    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet = {1};
+
+    EXPECT_CALL(*communication_interface, write(tx_packet))
+            .WillOnce(testing::Return(tx_packet.size()));
+    EXPECT_CALL(*communication_interface, read())
+            .WillOnce(testing::Return(rx_packet));
+
+    EXPECT_THROW(sensor->getHumidity(), std::runtime_error);
+}
+
 TEST_F(TemperatureSensorTests, ExceptionThrownWhenReceivedPacketChecksumIsWrong) {
     std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
     std::vector<uint8_t> rx_packet = {'$', 2, 1, 1, 1};

@@ -5,7 +5,7 @@ std::vector<uint8_t> AbstractPeriphery::readData() {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
     auto rx_package = communication_interface_->read();
-    auto data = protocol_interface_->deserialize(rx_package);
+    auto data = protocol_interface_->unpackData(rx_package);
 
     return data;
 }
@@ -13,7 +13,7 @@ std::vector<uint8_t> AbstractPeriphery::readData() {
 uint8_t AbstractPeriphery::writeData(const std::vector<uint8_t> &tx_data) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-    auto tx_package = protocol_interface_->serialize(tx_data);
+    auto tx_package = protocol_interface_->packData(tx_data);
 
     return communication_interface_->write(tx_package);
 }
