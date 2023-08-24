@@ -4,8 +4,9 @@ skinparam classAttributeIconSize 0
 
 'Classes
 abstract AbstractPeriphery {
-    #AbstractPeriphery(std::shared_ptr<CommunicationInterface> interface)
+    #AbstractPeriphery(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
     -std::shared_ptr<CommunicationInterface> communication_interface_;
+    -std::shared_ptr<ProtocolInterface> protocol_interface_;
     -writeData(const std::vector<uint8_t> data) : void
     -readData() : std::vector<uint8_t>
     +getDataSyncroniously(std::vector<uint8_t> &tx_data) : uint8_t
@@ -15,25 +16,18 @@ abstract AbstractPeriphery {
 }
 
 class SensorMock {
-    +SensorMock(std::shared_ptr<CommunicationInterface> interface)
+    +SensorMock(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
     +init() : uint8_t
     +deinit() : uint8_t
     +getStatus() : uint8_t
 }
 
 class TemperatureSensor {
-    +TemperatureSensor(std::shared_ptr<CommunicationInterface> interface)
+    +TemperatureSensor(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
     +init() : uint8_t
     +deinit() : uint8_t
     +getStatus() : uint8_t
     +getTemperature() : uint8_t
-}
-
-class Camera {
-    +Camera(std::shared_ptr<CommunicationInterface> interface)
-    +init() : uint8_t
-    +deinit() : uint8_t
-    +getStatus() : uint8_t
 }
 
 interface CommunicationInterface {
@@ -56,24 +50,46 @@ class Ethernet {
     +read() : std::vector<uint8_t>
 }
 
+interface ProtocolInterface {
+    +{abstract}serialize() : uint8_t
+    +{abstract}deserialize() : uint8_t
+}
+
+class SensorProtocol {
+    +serialize() : uint8_t
+    +deserialize() : uint8_t
+}
+
+class ProtocolMock {
+    +serialize() : uint8_t
+    +deserialize() : uint8_t
+}
+
 object UserCode {
+    auto protocol_interface = std::make_shared<ProtocolMock>();
     auto communication_interface = std::make_shared<CommunicationMock>();
-    auto temp_sensor = std::make_shared<SensorMock>(communication_interface);
+    auto temp_sensor = std::make_shared<SensorMock>(communication_interface, protocol_interface);
     \n
     temp_sensor->init();
     std::cout << static_cast<int>(temp_sensor->getStatus()) << std::endl;
     std::cout << static_cast<int>(temp_sensor->getTemperature()) << std::endl;
+    std::cout << static_cast<int>(temp_sensor->getHumidity()) << std::endl;
     temp_sensor->deinit();
 }
 
 'Relations
-SensorMock -up-|> AbstractPeriphery
-TemperatureSensor -up-|> AbstractPeriphery
-Camera -up-|> AbstractPeriphery
-AbstractPeriphery "Strategy" o-- CommunicationInterface
 CommunicationMock -up-|> CommunicationInterface
 Uart -up-|> CommunicationInterface
 Ethernet -up-|> CommunicationInterface
+
+SensorProtocol -up-|> ProtocolInterface
+ProtocolMock -up-|> ProtocolInterface
+
+AbstractPeriphery "Strategy" o-- CommunicationInterface
+AbstractPeriphery "Strategy" o-- ProtocolInterface
+
+SensorMock -up-|> AbstractPeriphery
+TemperatureSensor -up-|> AbstractPeriphery
 
 'Notes
 
