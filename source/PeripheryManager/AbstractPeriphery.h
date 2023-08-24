@@ -22,7 +22,7 @@ private:
     std::shared_ptr<CommunicationInterface> communication_interface_;
     std::shared_ptr<ProtocolInterface> protocol_interface_;
     std::vector<uint8_t> readData();
-    uint8_t writeData(const std::vector<uint8_t> &tx_data);
+    bool writeData(const std::vector<uint8_t> &tx_data);
 };
 
 #endif //PERIPHERY_MANAGER_ABSTRACTPERIPHERY_H
