@@ -51,18 +51,18 @@ class Ethernet {
 }
 
 interface ProtocolInterface {
-    +{abstract}serialize() : uint8_t
-    +{abstract}deserialize() : uint8_t
+    +{abstract}packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+    +{abstract}unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
 }
 
-class SensorProtocol {
-    +serialize() : uint8_t
-    +deserialize() : uint8_t
+class TemperatureSensorProtocol {
+    +packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+    +unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
 }
 
 class ProtocolMock {
-    +serialize() : uint8_t
-    +deserialize() : uint8_t
+    +packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+    +unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
 }
 
 object UserCode {
@@ -82,7 +82,7 @@ CommunicationMock -up-|> CommunicationInterface
 Uart -up-|> CommunicationInterface
 Ethernet -up-|> CommunicationInterface
 
-SensorProtocol -up-|> ProtocolInterface
+TemperatureSensorProtocol -up-|> ProtocolInterface
 ProtocolMock -up-|> ProtocolInterface
 
 AbstractPeriphery "Strategy" o-- CommunicationInterface
