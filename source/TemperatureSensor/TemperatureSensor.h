@@ -1,6 +1,7 @@
 #ifndef PERIPHERY_MANAGER_TEMPERATURESENSOR_H
 #define PERIPHERY_MANAGER_TEMPERATURESENSOR_H
 
+#include <future>
 #include "PeripheryManager/AbstractPeriphery.h"
 
 class TemperatureSensor : public AbstractPeriphery {
@@ -14,6 +15,7 @@ public:
     uint8_t getStatus() override;
     uint8_t getTemperature();
     uint16_t getHumidity();
+    std::future<uint8_t> getTemperatureAsynchronously();
 };
 
 #endif //PERIPHERY_MANAGER_TEMPERATURESENSOR_H

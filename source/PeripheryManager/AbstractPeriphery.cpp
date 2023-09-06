@@ -33,3 +33,35 @@ std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<ui
 
     return respose_rx;
 }
+
+std::future<std::vector<uint8_t>> AbstractPeriphery::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+
+    std::promise<std::vector<uint8_t>> prom;
+    auto future_result = prom.get_future();
+
+    if(writeData(tx_data)) {
+        // Simulate or implement actual asynchronous operation for reading data
+        std::thread([prom = std::move(prom), this]() mutable {
+            // Wait until the data is ready (replace with your actual logic)
+            std::this_thread::sleep_for(std::chrono::seconds(10)); //FIXME: use a mechanism to check if data received
+            std::vector<uint8_t> rx_data = readData();
+            prom.set_value(rx_data);
+        }).detach();
+    } else {
+        throw std::runtime_error("Not all data was written");
+    }
+
+    return future_result;
+}
+
+bool AbstractPeriphery::initCommunication() {
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
+
+    if (!communication_interface_->init()) {
+        LOG_ERROR("{}", "Error initializing connection to server");
+        return false;
+    }
+
+    return true;
+}

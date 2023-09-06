@@ -5,7 +5,7 @@ project(periphery-manager LANGUAGES CXX VERSION ${VERSION})
 
 find_package(spdlog CONFIG REQUIRED)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(include source)
