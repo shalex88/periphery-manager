@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <future>
 #include "CommunicationInterface.h"
 #include "ProtocolInterface.h"
 
@@ -17,6 +18,7 @@ public:
     virtual uint8_t deinit() = 0;
     virtual uint8_t getStatus() = 0;
     std::vector<uint8_t> getDataSyncronously(const std::vector<uint8_t> &tx_data);
+    std::future<std::vector<uint8_t>> getDataAsynchronously(const std::vector<uint8_t> &tx_data);
 
 private:
     std::shared_ptr<CommunicationInterface> communication_interface_;

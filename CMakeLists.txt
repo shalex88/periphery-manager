@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 include(cmake/SetVersion.cmake)
 project(periphery-manager LANGUAGES CXX VERSION ${VERSION})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 include_directories(include)
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "source/*.cpp")

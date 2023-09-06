@@ -13,6 +13,11 @@ int main() {
     temp_sensor->init();
 
     std::cout << static_cast<int>(temp_sensor->getStatus()) << std::endl;
+
+    auto temperature_task = temp_sensor->getTemperatureAsynchronously();
+    float temperature = temperature_task.get();
+    std::cout << static_cast<int>(temperature) << std::endl;
+
     std::cout << static_cast<int>(temp_sensor->getTemperature()) << std::endl;
     std::cout << static_cast<int>(temp_sensor->getHumidity()) << std::endl;
 
