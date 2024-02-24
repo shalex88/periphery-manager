@@ -5,7 +5,7 @@
 
 class TemperatureSensor : public AbstractPeriphery {
 public:
-    TemperatureSensor(std::shared_ptr<CommunicationInterface> communication_interface,
+    TemperatureSensor(std::shared_ptr<HwInterface> communication_interface,
                                std::shared_ptr<ProtocolInterface> protocol_interface) :
                                AbstractPeriphery(std::move(communication_interface), std::move(protocol_interface)) {};
     ~TemperatureSensor() override = default;

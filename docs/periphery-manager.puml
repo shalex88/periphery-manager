@@ -4,8 +4,9 @@ skinparam classAttributeIconSize 0
 
 'Classes
 abstract AbstractPeriphery {
-    #AbstractPeriphery(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
-    -std::shared_ptr<CommunicationInterface> communication_interface_;
+    #AbstractPeriphery(std::shared_ptr<HwInterface> hw_interface,
+    std::shared_ptr<ProtocolInterface> protocol_interface)
+    -std::shared_ptr<HwInterface> hw_interface_;
     -std::shared_ptr<ProtocolInterface> protocol_interface_;
     -writeData(const std::vector<uint8_t> data) : void
     -readData() : std::vector<uint8_t>
@@ -16,26 +17,51 @@ abstract AbstractPeriphery {
 }
 
 class SensorMock {
-    +SensorMock(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
+    +SensorMock(std::shared_ptr<HwInterface> hw_interface,
+        std::shared_ptr<ProtocolInterface> protocol_interface)
     +init() : uint8_t
     +deinit() : uint8_t
     +getStatus() : uint8_t
 }
 
 class TemperatureSensor {
-    +TemperatureSensor(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
+    +TemperatureSensor(std::shared_ptr<HwInterface> hw_interface,
+        std::shared_ptr<ProtocolInterface> protocol_interface)
     +init() : uint8_t
     +deinit() : uint8_t
     +getStatus() : uint8_t
     +getTemperature() : uint8_t
 }
 
-interface CommunicationInterface {
+class DayCamera {
+    +DayCamera(std::shared_ptr<HwInterface> hw_interface,
+        std::shared_ptr<ProtocolInterface> protocol_interface)
+    +init() : uint8_t
+    +deinit() : uint8_t
+    +getStatus() : uint8_t
+    +getZoom() : uint8_t
+    +zoomIn() : uint8_t
+    +zoomOut() : uint8_t
+}
+
+class ThermalCamera {
+    +ThermalCamera(std::shared_ptr<HwInterface> hw_interface,
+        std::shared_ptr<ProtocolInterface> protocol_interface)
+    +init() : uint8_t
+    +deinit() : uint8_t
+    +getStatus() : uint8_t
+    +getZoom() : uint8_t
+    +zoomIn() : uint8_t
+    +zoomOut() : uint8_t
+    +changePolarity() : uint8_t
+}
+
+interface HwInterface {
     +{abstract} write(const std::vector<uint8_t>& data) : void
     +{abstract} read() : std::vector<uint8_t>
 }
 
-class CommunicationMock {
+class HwMock {
     +write(const std::vector<uint8_t>& data) : void
     +read() : std::vector<uint8_t>
 }
@@ -67,8 +93,8 @@ class ProtocolMock {
 
 object UserCode {
     auto protocol_interface = std::make_shared<ProtocolMock>();
-    auto communication_interface = std::make_shared<CommunicationMock>();
-    auto temp_sensor = std::make_shared<SensorMock>(communication_interface, protocol_interface);
+    auto hw_interface = std::make_shared<HwMock>();
+    auto temp_sensor = std::make_shared<SensorMock>(hw_interface, protocol_interface);
     \n
     temp_sensor->init();
     std::cout << static_cast<int>(temp_sensor->getStatus()) << std::endl;
@@ -78,18 +104,20 @@ object UserCode {
 }
 
 'Relations
-CommunicationMock -up-|> CommunicationInterface
-Uart -up-|> CommunicationInterface
-Ethernet -up-|> CommunicationInterface
+HwMock -up-|> HwInterface
+Uart -up-|> HwInterface
+Ethernet -up-|> HwInterface
 
 TemperatureSensorProtocol -up-|> ProtocolInterface
 ProtocolMock -up-|> ProtocolInterface
 
-AbstractPeriphery "Strategy" o-- CommunicationInterface
+AbstractPeriphery "Strategy" o-- HwInterface
 AbstractPeriphery "Strategy" o-- ProtocolInterface
 
 SensorMock -up-|> AbstractPeriphery
 TemperatureSensor -up-|> AbstractPeriphery
+DayCamera -up-|> AbstractPeriphery
+ThermalCamera -up-|> AbstractPeriphery
 
 'Notes
 

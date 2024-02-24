@@ -7,4 +7,6 @@
 ## TODO:
 
 * Who is in charge to open bus connection?
-* Commands inside periphery class to be able to use it without commands? 
+* Commands inside periphery class to be able to use it without commands?
+* Check the opcode of the response fits the opcode of the request?
+* Check the size validation
