@@ -1,8 +1,9 @@
 #include "AbstractPeriphery.h"
 #include <iostream>
+#include "../Logger/Logger.h"
 
 std::vector<uint8_t> AbstractPeriphery::readData() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto rx_packet = communication_interface_->read();
     auto data = protocol_interface_->unpackData(rx_packet);
@@ -11,7 +12,7 @@ std::vector<uint8_t> AbstractPeriphery::readData() {
 }
 
 bool AbstractPeriphery::writeData(const std::vector<uint8_t> &tx_data) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto tx_packet = protocol_interface_->packData(tx_data);
 
@@ -19,7 +20,7 @@ bool AbstractPeriphery::writeData(const std::vector<uint8_t> &tx_data) {
 }
 
 std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     std::vector<uint8_t> respose_rx;
 

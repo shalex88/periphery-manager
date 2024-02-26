@@ -1,6 +1,6 @@
 #include "TemperatureSensor.h"
-#include <iostream>
 #include <unordered_map>
+#include "../Logger/Logger.h"
 
 enum class COMMAND {
     GET_STATUS,
@@ -15,7 +15,7 @@ std::unordered_map<COMMAND, std::vector<uint8_t>> command = {
 };
 
 uint8_t TemperatureSensor::init() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     //TODO: implement
 
@@ -23,7 +23,7 @@ uint8_t TemperatureSensor::init() {
 }
 
 uint8_t TemperatureSensor::deinit() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     //TODO: implement
 
@@ -31,7 +31,7 @@ uint8_t TemperatureSensor::deinit() {
 }
 
 uint8_t TemperatureSensor::getStatus() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto status = getDataSyncronously(command[COMMAND::GET_STATUS]).at(0);
 
@@ -39,7 +39,7 @@ uint8_t TemperatureSensor::getStatus() {
 }
 
 uint8_t TemperatureSensor::getTemperature() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto temperature = getDataSyncronously(command[COMMAND::GET_TEMPERATURE]).at(0);
 
@@ -47,7 +47,7 @@ uint8_t TemperatureSensor::getTemperature() {
 }
 
 uint16_t TemperatureSensor::getHumidity() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto rx_data = getDataSyncronously(command[COMMAND::GET_HUMIDITY]);
 

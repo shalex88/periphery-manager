@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include "../Logger/Logger.h"
 #include "TemperatureSensorProtocol.h"
 
 std::vector<uint8_t> TemperatureSensorProtocol::packData(const std::vector<uint8_t> &data) {
@@ -16,7 +17,8 @@ std::vector<uint8_t> TemperatureSensorProtocol::packData(const std::vector<uint8
 }
 
 void TemperatureSensorProtocol::logPackage(const std::string& message, const TemperatureSensorProtocol::Packet &serialized_packet) const {
-    std::cout << message << " " << packetToString(serialized_packet) << std::endl;
+//    std::cout << message << " " << packetToString(serialized_packet) << std::endl;
+    LOG_DEBUG("{} {}", message, packetToString(serialized_packet));
 }
 
 std::vector<uint8_t> TemperatureSensorProtocol::unpackData(const std::vector<uint8_t> &packet) {

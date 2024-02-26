@@ -1,10 +1,10 @@
-#include <iostream>
 #include "PeripheryManager/CommunicationMock.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
+#include "Logger/Logger.h"
 
 int main() {
-    std::cout << "periphery-manager" << " " << APP_VERSION_MAJOR << "." << APP_VERSION_MINOR << "." << APP_VERSION_PATCH << std::endl;
+    LOG_INFO("periphery-manager {}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
     auto communication_interface = std::make_shared<CommunicationMock>();
     auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();
@@ -12,11 +12,13 @@ int main() {
 
     temp_sensor->init();
 
-    std::cout << static_cast<int>(temp_sensor->getStatus()) << std::endl;
-    std::cout << static_cast<int>(temp_sensor->getTemperature()) << std::endl;
-    std::cout << static_cast<int>(temp_sensor->getHumidity()) << std::endl;
+    LOG_INFO("{}", temp_sensor->getStatus());
+    LOG_INFO("{}", temp_sensor->getTemperature());
+    LOG_INFO("{}", temp_sensor->getHumidity());
 
     temp_sensor->deinit();
+
+    spdlog::drop_all();
 
     return 0;
 }

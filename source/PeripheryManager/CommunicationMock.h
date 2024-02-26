@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
+#include "../Logger/Logger.h"
 #include "CommunicationInterface.h"
 
 class CommunicationMock : public CommunicationInterface {
@@ -17,13 +18,13 @@ private:
 };
 
 std::vector<uint8_t> CommunicationMock::read() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     return last_tx_data_;
 }
 
 uint8_t CommunicationMock::write(const std::vector<uint8_t> &tx_data) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     last_tx_data_ = tx_data;
 
