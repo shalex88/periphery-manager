@@ -3,18 +3,42 @@
 
 #include "Logger/ILogger.h"
 #include "Logger/SpdLogAdapter.h"
+#include <memory>
 
-inline ILogger& getGlobalLogger() {
-    return SpdLogAdapter::getInstance();
-}
+class Logger {
+public:
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
 
-#define LOG_TRACE(fmt, ...) getGlobalLogger().trace(fmt, ##__VA_ARGS__)
-#define LOG_DEBUG(fmt, ...) getGlobalLogger().debug(fmt, ##__VA_ARGS__)
-#define LOG_INFO(fmt, ...)  getGlobalLogger().info(fmt, ##__VA_ARGS__)
-#define LOG_WARN(fmt, ...)  getGlobalLogger().warn(fmt, ##__VA_ARGS__)
-#define LOG_ERROR(fmt, ...) getGlobalLogger().error(fmt, ##__VA_ARGS__)
-#define LOG_CRITICAL(fmt, ...) getGlobalLogger().critical(fmt, ##__VA_ARGS__)
+    static Logger& getInstance() {
+        static Logger instance;
+        return instance;
+    }
 
-#define SET_LOG_LEVEL(level) getGlobalLogger().setLogLevel(level)
+    void setLogLevel(ILogger::LogLevel level) {
+        logger_->setLogLevel(level);
+    }
+
+    template<typename... Args>
+    void log(ILogger::LogLevel level, const std::string& format, Args... args) {
+        logger_->log(level, format, std::forward<Args>(args)...);
+    }
+
+private:
+    Logger() {
+        logger_ = std::make_shared<SpdLogAdapter>();
+    }
+
+    std::shared_ptr<ILogger> logger_;
+};
+
+#define SET_LOG_LEVEL(level) Logger::getInstance().setLogLevel(level)
+
+#define LOG_TRACE(...) Logger::getInstance().log(ILogger::LogLevel::Trace, __VA_ARGS__)
+#define LOG_DEBUG(...) Logger::getInstance().log(ILogger::LogLevel::Debug, __VA_ARGS__)
+#define LOG_INFO(...) Logger::getInstance().log(ILogger::LogLevel::Info, __VA_ARGS__)
+#define LOG_WARN(...) Logger::getInstance().log(ILogger::LogLevel::Warn, __VA_ARGS__)
+#define LOG_ERROR(...) Logger::getInstance().log(ILogger::LogLevel::Error, __VA_ARGS__)
+#define LOG_CRITICAL(...) Logger::getInstance().log(ILogger::LogLevel::Critical, __VA_ARGS__)
 
 #endif //PERIPHERY_MANAGER_LOGGER_H

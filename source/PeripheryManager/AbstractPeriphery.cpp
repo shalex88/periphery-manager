@@ -27,6 +27,7 @@ std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<ui
     if(writeData(tx_data)) {
         respose_rx = readData();
     } else {
+        LOG_ERROR("{}", "Not all data was written");
         throw std::runtime_error("Not all data was written");
     }
 
