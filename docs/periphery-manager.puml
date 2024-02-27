@@ -3,6 +3,19 @@
 skinparam classAttributeIconSize 0
 
 'Classes
+
+interface LoggerInterface {
+}
+
+class Logger {
+}
+
+class SpdLogAdapter {
+}
+
+class StdoutAdapter {
+}
+
 abstract AbstractPeriphery {
     #AbstractPeriphery(std::shared_ptr<CommunicationInterface> communication_interface, std::shared_ptr<ProtocolInterface> protocol_interface)
     -std::shared_ptr<CommunicationInterface> communication_interface_;
@@ -66,14 +79,16 @@ class ProtocolMock {
 }
 
 object UserCode {
-    auto protocol_interface = std::make_shared<ProtocolMock>();
     auto communication_interface = std::make_shared<CommunicationMock>();
-    auto temp_sensor = std::make_shared<SensorMock>(communication_interface, protocol_interface);
+    auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();
+    auto temp_sensor = std::make_shared<TemperatureSensor>(communication_interface, protocol_interface);
     \n
     temp_sensor->init();
-    std::cout << static_cast<int>(temp_sensor->getStatus()) << std::endl;
-    std::cout << static_cast<int>(temp_sensor->getTemperature()) << std::endl;
-    std::cout << static_cast<int>(temp_sensor->getHumidity()) << std::endl;
+    LOG_INFO("{}", temp_sensor->getStatus());
+    LOG_INFO("{}", temp_sensor->getTemperature());
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Debug);
+    LOG_INFO("{}", temp_sensor->getHumidity());
+    \n
     temp_sensor->deinit();
 }
 
@@ -87,6 +102,11 @@ ProtocolMock -up-|> ProtocolInterface
 
 AbstractPeriphery "Strategy" o-- CommunicationInterface
 AbstractPeriphery "Strategy" o-- ProtocolInterface
+
+Logger -up-> LoggerInterface
+Logger -up-> SpdLogAdapter
+SpdLogAdapter .up.|> LoggerInterface
+StdoutAdapter .up.|> LoggerInterface
 
 SensorMock -up-|> AbstractPeriphery
 TemperatureSensor -up-|> AbstractPeriphery
