@@ -15,4 +15,6 @@ inline ILogger& getGlobalLogger() {
 #define LOG_ERROR(fmt, ...) getGlobalLogger().error(fmt, ##__VA_ARGS__)
 #define LOG_CRITICAL(fmt, ...) getGlobalLogger().critical(fmt, ##__VA_ARGS__)
 
+#define SET_LOG_LEVEL(level) getGlobalLogger().setLogLevel(level)
+
 #endif //PERIPHERY_MANAGER_LOGGER_H

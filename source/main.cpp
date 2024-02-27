@@ -14,11 +14,12 @@ int main() {
 
     LOG_INFO("{}", temp_sensor->getStatus());
     LOG_INFO("{}", temp_sensor->getTemperature());
+
+    SET_LOG_LEVEL("debug");
+
     LOG_INFO("{}", temp_sensor->getHumidity());
 
     temp_sensor->deinit();
-
-    spdlog::drop_all();
 
     return 0;
 }
