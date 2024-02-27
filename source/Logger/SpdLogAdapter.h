@@ -1,12 +1,12 @@
 #ifndef PERIPHERY_MANAGER_SPDLOGADAPTER_H
 #define PERIPHERY_MANAGER_SPDLOGADAPTER_H
 
-#include "Logger/ILogger.h"
+#include "Logger/LoggerInterface.h"
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
-class SpdLogAdapter : public ILogger {
+class SpdLogAdapter : public LoggerInterface {
 public:
     SpdLogAdapter() {
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();

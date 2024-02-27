@@ -1,10 +1,10 @@
-#ifndef PERIPHERY_MANAGER_ILOGGER_H
-#define PERIPHERY_MANAGER_ILOGGER_H
+#ifndef PERIPHERY_MANAGER_LOGGERINTERFACE_H
+#define PERIPHERY_MANAGER_LOGGERINTERFACE_H
 
 #include <string>
 #include <fmt/format.h>
 
-class ILogger {
+class LoggerInterface {
 public:
     enum class LogLevel {
         Trace,
@@ -15,7 +15,7 @@ public:
         Critical
     };
 
-    virtual ~ILogger() = default;
+    virtual ~LoggerInterface() = default;
 
     // Template method for logging with formatting, using LogLevel enum
     template<typename... Args>
@@ -26,8 +26,7 @@ public:
     virtual void setLogLevel(LogLevel level) = 0;
 
 protected:
-    // Pure virtual method to be implemented by derived classes, accepting LogLevel enum
     virtual void logImpl(LogLevel level, const std::string &msg) = 0;
 };
 
-#endif //PERIPHERY_MANAGER_ILOGGER_H
+#endif //PERIPHERY_MANAGER_LOGGERINTERFACE_H
