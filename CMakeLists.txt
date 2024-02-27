@@ -12,9 +12,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(include)
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "source/*.cpp")
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+function(link_common_libraries target)
+    target_link_libraries(${target}
+            PRIVATE
+            #Add your libs here
+            spdlog::spdlog
+            fmt::fmt
+    )
+endfunction(link_common_libraries)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog fmt::fmt)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+link_common_libraries(${PROJECT_NAME})
 
 add_subdirectory(tests)
 
