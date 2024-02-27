@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "../source/PeripheryManager/CommunicationInterface.h"
+#include "PeripheryManager/CommunicationInterface.h"
 
 // TEST PLAN
 // + Read 8bit vector from interface

@@ -1,6 +1,6 @@
-#include "TemperatureSensor.h"
 #include <unordered_map>
-#include "../Logger/Logger.h"
+#include "Logger/Logger.h"
+#include "TemperatureSensor/TemperatureSensor.h"
 
 enum class COMMAND {
     GET_STATUS,

@@ -1,8 +1,8 @@
 #ifndef PERIPHERY_MANAGER_LOGGER_H
 #define PERIPHERY_MANAGER_LOGGER_H
 
-#include "ILogger.h"
-#include "SpdLogAdapter.h"
+#include "Logger/ILogger.h"
+#include "Logger/SpdLogAdapter.h"
 
 inline ILogger& getGlobalLogger() {
     return SpdLogAdapter::getInstance();

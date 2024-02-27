@@ -3,8 +3,8 @@
 
 #include <memory>
 #include <utility>
-#include "CommunicationInterface.h"
-#include "ProtocolInterface.h"
+#include "PeripheryManager/CommunicationInterface.h"
+#include "PeripheryManager/ProtocolInterface.h"
 
 class AbstractPeriphery {
 public:

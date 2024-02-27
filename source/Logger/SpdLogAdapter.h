@@ -1,7 +1,7 @@
 #ifndef PERIPHERY_MANAGER_SPDLOGADAPTER_H
 #define PERIPHERY_MANAGER_SPDLOGADAPTER_H
 
-#include "ILogger.h"
+#include "Logger/ILogger.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 

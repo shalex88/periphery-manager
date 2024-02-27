@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "../source/TemperatureSensor/TemperatureSensor.h"
-#include "../source/TemperatureSensor/TemperatureSensorProtocol.h"
+#include "TemperatureSensor/TemperatureSensor.h"
+#include "TemperatureSensor/TemperatureSensorProtocol.h"
 
 // TEST PLAN
 // + Able to init HW

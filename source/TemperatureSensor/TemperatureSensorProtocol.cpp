@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
-#include "../Logger/Logger.h"
-#include "TemperatureSensorProtocol.h"
+#include "Logger/Logger.h"
+#include "TemperatureSensor/TemperatureSensorProtocol.h"
 
 std::vector<uint8_t> TemperatureSensorProtocol::packData(const std::vector<uint8_t> &data) {
     Packet serialized_packet;

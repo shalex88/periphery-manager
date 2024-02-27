@@ -4,8 +4,8 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
-#include "../Logger/Logger.h"
-#include "CommunicationInterface.h"
+#include "Logger/Logger.h"
+#include "PeripheryManager/CommunicationInterface.h"
 
 class CommunicationMock : public CommunicationInterface {
 public:

@@ -1,7 +1,7 @@
 #ifndef PERIPHERY_MANAGER_TEMPERATURESENSOR_H
 #define PERIPHERY_MANAGER_TEMPERATURESENSOR_H
 
-#include "../PeripheryManager/AbstractPeriphery.h"
+#include "PeripheryManager/AbstractPeriphery.h"
 
 class TemperatureSensor : public AbstractPeriphery {
 public:

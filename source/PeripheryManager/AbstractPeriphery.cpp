@@ -1,6 +1,6 @@
-#include "AbstractPeriphery.h"
 #include <iostream>
-#include "../Logger/Logger.h"
+#include "Logger/Logger.h"
+#include "PeripheryManager/AbstractPeriphery.h"
 
 std::vector<uint8_t> AbstractPeriphery::readData() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
