@@ -1,3 +1,4 @@
+include(cmake/EnableVcpkg.cmake)
 cmake_minimum_required(VERSION 3.22)
 include(cmake/SetVersion.cmake)
 project(periphery-manager LANGUAGES CXX VERSION ${VERSION})
