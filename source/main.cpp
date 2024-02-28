@@ -14,9 +14,6 @@ int main() {
 
     LOG_INFO("{}", temp_sensor->getStatus());
     LOG_INFO("{}", temp_sensor->getTemperature());
-
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::Debug);
-
     LOG_INFO("{}", temp_sensor->getHumidity());
 
     temp_sensor->deinit();

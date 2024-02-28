@@ -1,23 +1,22 @@
 #ifndef PERIPHERY_MANAGER_SPDLOGADAPTER_H
 #define PERIPHERY_MANAGER_SPDLOGADAPTER_H
 
+#include <iostream>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/ostream_sink.h"
 #include "Logger/LoggerInterface.h"
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
 
 class SpdLogAdapter : public LoggerInterface {
 public:
     SpdLogAdapter() {
-        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/log.txt", true);
-        logger_ = std::make_shared<spdlog::logger>("multi_sink", spdlog::sinks_init_list{console_sink, file_sink});
-        logger_->set_level(log_level_);
+        auto stdout_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(std::cout, true);
+        logger_ = std::make_shared<spdlog::logger>("console", stdout_sink);
+        spdlog::set_default_logger(logger_);
+        logger_->set_level(spdlog::level::info);
     }
 
     ~SpdLogAdapter() override {
         spdlog::drop_all();
-        spdlog::shutdown();
     }
 
     void setLogLevel(LogLevel level) override {
@@ -31,7 +30,6 @@ protected:
 
 private:
     std::shared_ptr<spdlog::logger> logger_;
-    spdlog::level::level_enum log_level_ = spdlog::level::info;
 
     spdlog::level::level_enum toSpdLogLevel(LogLevel level) {
         switch (level) {
@@ -47,8 +45,6 @@ private:
                 return spdlog::level::err;
             case LogLevel::Critical:
                 return spdlog::level::critical;
-            default:
-                return spdlog::level::info; // Default to info if unknown level
         }
     }
 };
