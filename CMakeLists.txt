@@ -4,7 +4,6 @@ include(cmake/SetVersion.cmake)
 project(periphery-manager LANGUAGES CXX VERSION ${VERSION})
 
 find_package(spdlog CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,7 +16,6 @@ function(link_common_libraries target)
             PRIVATE
             #Add your libs here
             spdlog::spdlog
-            fmt::fmt
     )
 endfunction(link_common_libraries)
 

@@ -17,7 +17,6 @@ public:
 
     virtual ~LoggerInterface() = default;
 
-    // Template method for logging with formatting, using LogLevel enum
     template<typename... Args>
     void log(LogLevel level, const std::string &format, Args &&... args) {
         logImpl(level, fmt::format(format, std::forward<Args>(args)...));

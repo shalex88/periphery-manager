@@ -45,6 +45,8 @@ private:
                 return spdlog::level::err;
             case LogLevel::Critical:
                 return spdlog::level::critical;
+            default:
+                return spdlog::level::info;
         }
     }
 };
