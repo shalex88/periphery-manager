@@ -7,8 +7,8 @@
 int main() {
     LOG_INFO("periphery-manager {}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
-//    auto communication_interface = std::make_shared<CommunicationMock>();
-    auto communication_interface = std::make_shared<CommunicationTcpClient>("127.0.0.1", 8080);
+    auto communication_interface = std::make_shared<CommunicationMock>();
+//    auto communication_interface = std::make_shared<CommunicationTcpClient>("127.0.0.1", 8080);
     auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();
     auto temp_sensor = std::make_shared<TemperatureSensor>(communication_interface, protocol_interface);
 
@@ -17,9 +17,7 @@ int main() {
     LOG_INFO("{}", temp_sensor->getStatus());
     LOG_INFO("{}", temp_sensor->getTemperature());
     LOG_INFO("{}", temp_sensor->getHumidity());
-
-    auto temperature_task = temp_sensor->getTemperatureAsynchronously();
-    LOG_INFO("{}", temperature_task.get();
+    LOG_INFO("{}", temp_sensor->getTemperatureAsynchronously().get());
 
     temp_sensor->deinit();
 

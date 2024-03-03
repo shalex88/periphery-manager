@@ -33,7 +33,7 @@ uint8_t CommunicationMock::write(const std::vector<uint8_t> &tx_data) {
 }
 
 bool CommunicationMock::init() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     return true;
 }

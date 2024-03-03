@@ -35,7 +35,7 @@ std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<ui
 }
 
 std::future<std::vector<uint8_t>> AbstractPeriphery::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     std::promise<std::vector<uint8_t>> prom;
     auto future_result = prom.get_future();

@@ -57,7 +57,7 @@ uint16_t TemperatureSensor::getHumidity() {
 }
 
 std::future<uint8_t> TemperatureSensor::getTemperatureAsynchronously() {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     std::promise<uint8_t> prom;
     auto future_result = prom.get_future();
