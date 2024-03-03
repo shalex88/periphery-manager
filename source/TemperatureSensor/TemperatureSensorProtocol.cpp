@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
-#include "TemperatureSensorProtocol.h"
+#include "Logger/Logger.h"
+#include "TemperatureSensor/TemperatureSensorProtocol.h"
 
 std::vector<uint8_t> TemperatureSensorProtocol::packData(const std::vector<uint8_t> &data) {
     Packet serialized_packet;
@@ -16,7 +17,7 @@ std::vector<uint8_t> TemperatureSensorProtocol::packData(const std::vector<uint8
 }
 
 void TemperatureSensorProtocol::logPackage(const std::string& message, const TemperatureSensorProtocol::Packet &serialized_packet) const {
-    std::cout << message << " " << packetToString(serialized_packet) << std::endl;
+    LOG_DEBUG("{} {}", message, packetToString(serialized_packet));
 }
 
 std::vector<uint8_t> TemperatureSensorProtocol::unpackData(const std::vector<uint8_t> &packet) {
@@ -43,6 +44,7 @@ TemperatureSensorProtocol::Packet TemperatureSensorProtocol::serialize(const std
     const size_t k_minimal_packet_size = sizeof(Packet::header) + sizeof(Packet::size)
                                        + sizeof(uint8_t) + sizeof(Packet::checksum); //TODO: Check somehow the data element size instead uint8_t
     if (packet.size() < k_minimal_packet_size) {
+        LOG_ERROR("{}", "Packet too small to be valid");
         throw std::runtime_error("Packet too small to be valid");
     }
 
@@ -57,6 +59,7 @@ TemperatureSensorProtocol::Packet TemperatureSensorProtocol::serialize(const std
     serialized_packet.checksum = *it;
 
     if (!verifyChecksum(serialized_packet)) {
+        LOG_ERROR("{}", "Checksum doesn't match, packet might be corrupted");
         throw std::runtime_error("Checksum doesn't match, packet might be corrupted");
     }
 

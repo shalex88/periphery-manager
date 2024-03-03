@@ -1,8 +1,8 @@
 #ifndef PERIPHERY_MANAGER_TEMPERATURESENSORPROTOCOL_H
 #define PERIPHERY_MANAGER_TEMPERATURESENSORPROTOCOL_H
 
-#include "../PeripheryManager/ProtocolInterface.h"
 #include <ostream>
+#include "PeripheryManager/ProtocolInterface.h"
 
 class TemperatureSensorProtocol : public ProtocolInterface {
 public:
