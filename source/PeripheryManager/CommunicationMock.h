@@ -14,6 +14,8 @@ public:
     std::vector<uint8_t> read() override;
     uint8_t write(const std::vector<uint8_t>& tx_data) override;
     bool init() override;
+    bool deinit() override;
+
 private:
     std::vector<uint8_t> last_tx_data_;
 };
@@ -33,6 +35,12 @@ uint8_t CommunicationMock::write(const std::vector<uint8_t> &tx_data) {
 }
 
 bool CommunicationMock::init() {
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
+
+    return true;
+}
+
+bool CommunicationMock::deinit() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     return true;

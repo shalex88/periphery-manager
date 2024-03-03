@@ -12,6 +12,7 @@ public:
     MOCK_METHOD0(read, std::vector<uint8_t>());
     MOCK_METHOD1(write, uint8_t(const std::vector<uint8_t>&));
     MOCK_METHOD0(init, bool());
+    MOCK_METHOD0(deinit, bool());
 };
 
 TEST(CommunicationInterfaceTests, AbleToReadData) {

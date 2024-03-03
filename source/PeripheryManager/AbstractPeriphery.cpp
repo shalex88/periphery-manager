@@ -44,7 +44,7 @@ std::future<std::vector<uint8_t>> AbstractPeriphery::getDataAsynchronously(const
         // Simulate or implement actual asynchronous operation for reading data
         std::thread([prom = std::move(prom), this]() mutable {
             // Wait until the data is ready (replace with your actual logic)
-            std::this_thread::sleep_for(std::chrono::seconds(10)); //FIXME: use a mechanism to check if data received
+            std::this_thread::sleep_for(std::chrono::seconds(1)); //FIXME: use a mechanism to check if data received
             std::vector<uint8_t> rx_data = readData();
             prom.set_value(rx_data);
         }).detach();
@@ -55,11 +55,35 @@ std::future<std::vector<uint8_t>> AbstractPeriphery::getDataAsynchronously(const
     return future_result;
 }
 
-bool AbstractPeriphery::initCommunication() {
+bool AbstractPeriphery::init() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
+    LOG_INFO("Init");
 
-    if (!communication_interface_->init()) {
-        LOG_ERROR("{}", "Error initializing connection to server");
+    if (enable()) {
+        if (!communication_interface_->init()) {
+            LOG_ERROR("Failed to connect");
+            disable();
+            return false;
+        }
+    } else {
+        LOG_ERROR("Failed to turn on");
+        return false;
+    }
+
+    return true;
+}
+
+bool AbstractPeriphery::deinit() {
+    LOG_TRACE("{}", __PRETTY_FUNCTION__);
+    LOG_INFO("Deinit");
+
+    if (communication_interface_->deinit()) {
+        if (!disable()) {
+            LOG_ERROR("Failed to turn off");
+            return false;
+        }
+    } else {
+        LOG_ERROR("Failed to disconnect");
         return false;
     }
 

@@ -14,18 +14,19 @@ protected:
                                communication_interface_(std::move(communication_interface)),
                                protocol_interface_(std::move(protocol_interface)) {};
     virtual ~AbstractPeriphery() = default;
-    virtual uint8_t init() = 0;
-    virtual uint8_t deinit() = 0;
-    virtual uint8_t getStatus() = 0;
     std::vector<uint8_t> getDataSyncronously(const std::vector<uint8_t> &tx_data);
     std::future<std::vector<uint8_t>> getDataAsynchronously(const std::vector<uint8_t> &tx_data);
-    bool initCommunication();
-
+public:
+    bool init();
+    bool deinit();
+    virtual uint8_t getStatus() = 0;
 private:
     std::shared_ptr<CommunicationInterface> communication_interface_;
     std::shared_ptr<ProtocolInterface> protocol_interface_;
     std::vector<uint8_t> readData();
     bool writeData(const std::vector<uint8_t> &tx_data);
+    virtual bool enable() = 0;
+    virtual bool disable() = 0;
 };
 
 #endif //PERIPHERY_MANAGER_ABSTRACTPERIPHERY_H

@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "CommunicationTcpClient.h"
+#include "Logger/Logger.h"
 
 CommunicationTcpClient::CommunicationTcpClient(const std::string &server_ip, int server_port)
         : client_socket_(-1), server_address_{} {
@@ -38,4 +39,8 @@ uint8_t CommunicationTcpClient::write(const std::vector<uint8_t> &tx_data) {
 
 bool CommunicationTcpClient::init() {
     return connect(client_socket_, (struct sockaddr*) &server_address_, sizeof(server_address_)) != -1;
+}
+
+bool CommunicationTcpClient::deinit() {
+    return true;
 }

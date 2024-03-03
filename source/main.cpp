@@ -12,14 +12,13 @@ int main() {
     auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();
     auto temp_sensor = std::make_shared<TemperatureSensor>(communication_interface, protocol_interface);
 
-    temp_sensor->init();
-
-    LOG_INFO("{}", temp_sensor->getStatus());
-    LOG_INFO("{}", temp_sensor->getTemperature());
-    LOG_INFO("{}", temp_sensor->getHumidity());
-    LOG_INFO("{}", temp_sensor->getTemperatureAsynchronously().get());
-
-    temp_sensor->deinit();
+    if (temp_sensor->init()) {
+        LOG_INFO("{}", temp_sensor->getStatus());
+        LOG_INFO("{}", temp_sensor->getTemperature());
+        LOG_INFO("{}", temp_sensor->getHumidity());
+        LOG_INFO("{}", temp_sensor->getTemperatureAsynchronously());
+        temp_sensor->deinit();
+    }
 
     return 0;
 }

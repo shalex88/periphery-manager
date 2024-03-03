@@ -14,20 +14,20 @@ std::unordered_map<COMMAND, std::vector<uint8_t>> command = {
     {COMMAND::GET_HUMIDITY, {1, 1}}
 };
 
-uint8_t TemperatureSensor::init() {
+bool TemperatureSensor::enable() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
-    initCommunication();
+    LOG_INFO("Turn On Temperature Sensor");
 
-    return 0;
+    return true;
 }
 
-uint8_t TemperatureSensor::deinit() {
+bool TemperatureSensor::disable() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
-    //TODO: implement
+    LOG_INFO("Turn Off Temperature Sensor");
 
-    return 0;
+    return true;
 }
 
 uint8_t TemperatureSensor::getStatus() {
@@ -56,7 +56,7 @@ uint16_t TemperatureSensor::getHumidity() {
     return humidity;
 }
 
-std::future<uint8_t> TemperatureSensor::getTemperatureAsynchronously() {
+uint8_t TemperatureSensor::getTemperatureAsynchronously() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     std::promise<uint8_t> prom;
@@ -68,5 +68,5 @@ std::future<uint8_t> TemperatureSensor::getTemperatureAsynchronously() {
 
     prom.set_value(temperature);
 
-    return future_result;
+    return temperature;
 }

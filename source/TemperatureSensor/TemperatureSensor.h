@@ -10,12 +10,13 @@ public:
                                std::shared_ptr<ProtocolInterface> protocol_interface) :
                                AbstractPeriphery(std::move(communication_interface), std::move(protocol_interface)) {};
     ~TemperatureSensor() override = default;
-    uint8_t init() override;
-    uint8_t deinit() override;
     uint8_t getStatus() override;
     uint8_t getTemperature();
     uint16_t getHumidity();
-    std::future<uint8_t> getTemperatureAsynchronously();
+    uint8_t getTemperatureAsynchronously();
+private:
+    bool enable() override;
+    bool disable() override;
 };
 
 #endif //PERIPHERY_MANAGER_TEMPERATURESENSOR_H
