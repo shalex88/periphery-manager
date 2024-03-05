@@ -1,13 +1,13 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "PeripheryManager/CommunicationInterface.h"
+#include "PeripheryManager/HwInterface.h"
 
 // TEST PLAN
 // + Read 8bit vector from interface
 // + Write 8bit vector to the interface
 
-class CommunicationMock : public CommunicationInterface {
+class HwMock : public HwInterface {
 public:
     MOCK_METHOD0(read, std::vector<uint8_t>());
     MOCK_METHOD1(write, uint8_t(const std::vector<uint8_t>&));
@@ -15,8 +15,8 @@ public:
     MOCK_METHOD0(deinit, bool());
 };
 
-TEST(CommunicationInterfaceTests, AbleToReadData) {
-    auto uart_interface = std::make_shared<CommunicationMock>();
+TEST(HwInterfaceTests, AbleToReadData) {
+    auto uart_interface = std::make_shared<HwMock>();
 
     EXPECT_CALL(*uart_interface, read())
             .WillOnce(testing::Return(std::vector<uint8_t>{0, 1, 2}));
@@ -25,8 +25,8 @@ TEST(CommunicationInterfaceTests, AbleToReadData) {
     EXPECT_EQ(uart_interface->read(), rx_data_expected);
 }
 
-TEST(CommunicationInterfaceTests, AbleToWriteData) {
-    auto uart_interface = std::make_shared<CommunicationMock>();
+TEST(HwInterfaceTests, AbleToWriteData) {
+    auto uart_interface = std::make_shared<HwMock>();
 
     auto tx_data = std::vector<uint8_t>{0, 1, 2};
 

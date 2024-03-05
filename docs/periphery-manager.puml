@@ -26,13 +26,13 @@ class StdoutAdapter {
     +logImpl()
 }
 
-abstract AbstractPeriphery {
-    -communication_interface_ : std::shared_ptr<CommunicationInterface>
+abstract AbstractDevice {
+    -hw_interface_ : std::shared_ptr<HwInterface>
     -protocol_interface_ : std::shared_ptr<ProtocolInterface>
     +init() : uint8_t
     +deinit() : uint8_t
     +{abstract}getStatus() : uint8_t
-    #AbstractPeriphery(std::shared_ptr<CommunicationInterface> communication_interface,
+    #AbstractDevice(std::shared_ptr<HwInterface> hw_interface,
         std::shared_ptr<ProtocolInterface> protocol_interface)
     #getDataSyncroniously(std::vector<uint8_t> &tx_data) : std::vector<uint8_t>
     #getDataAsyncroniously(std::vector<uint8_t> &tx_data) : std::vector<uint8_t>
@@ -44,7 +44,7 @@ abstract AbstractPeriphery {
 }
 
 class SensorMock {
-    +SensorMock(std::shared_ptr<CommunicationInterface> communication_interface,
+    +SensorMock(std::shared_ptr<HwInterface> hw_interface,
         std::shared_ptr<ProtocolInterface> protocol_interface)
     +init() : uint8_t
     +deinit() : uint8_t
@@ -52,7 +52,7 @@ class SensorMock {
 }
 
 class TemperatureSensor {
-    +TemperatureSensor(std::shared_ptr<CommunicationInterface> communication_interface,
+    +TemperatureSensor(std::shared_ptr<HwInterface> hw_interface,
         std::shared_ptr<ProtocolInterface> protocol_interface)
     +getStatus() : uint8_t
     +getTemperature() : uint8_t
@@ -61,14 +61,14 @@ class TemperatureSensor {
     -disable() : uint8_t
 }
 
-interface CommunicationInterface {
+interface HwInterface {
     +{abstract} write(const std::vector<uint8_t>& data) : void
     +{abstract} read() : std::vector<uint8_t>
     +{abstract} init() : bool
     +{abstract} deinit() : bool
 }
 
-class CommunicationMock {
+class HwMock {
     +write(const std::vector<uint8_t>& data) : void
     +read() : std::vector<uint8_t>
     +init() : bool
@@ -106,18 +106,18 @@ class ProtocolMock {
 
 'Relations
 
-SensorMock --|> AbstractPeriphery
-TemperatureSensor --|> AbstractPeriphery
+SensorMock --|> AbstractDevice
+TemperatureSensor --|> AbstractDevice
 
-AbstractPeriphery "Strategy" o-- CommunicationInterface
-AbstractPeriphery "Strategy" o-- ProtocolInterface
+AbstractDevice "Strategy" o-- HwInterface
+AbstractDevice "Strategy" o-- ProtocolInterface
 
 TemperatureSensorProtocol --|> ProtocolInterface
 ProtocolMock --|> ProtocolInterface
 
-CommunicationMock --|> CommunicationInterface
-Uart --|> CommunicationInterface
-Ethernet --|> CommunicationInterface
+HwMock --|> HwInterface
+Uart --|> HwInterface
+Ethernet --|> HwInterface
 
 Logger ..> LoggerInterface
 Logger ..> SpdLogAdapter
@@ -129,9 +129,9 @@ StdoutAdapter "Adapter\nTemplate method" --|> LoggerInterface
 'Notes
 
 note as UserCode
-    auto communication_interface = std::make_shared<CommunicationMock>();
+    auto hw_interface = std::make_shared<HwMock>();
     auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();
-    auto temp_sensor = std::make_shared<TemperatureSensor>(communication_interface, protocol_interface);
+    auto temp_sensor = std::make_shared<TemperatureSensor>(hw_interface, protocol_interface);
 
     if (temp_sensor->init()) {
         LOG_INFO("{}", temp_sensor->getStatus());

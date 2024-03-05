@@ -1,16 +1,16 @@
-#ifndef PERIPHERY_MANAGER_COMMUNICATIONMOCK_H
-#define PERIPHERY_MANAGER_COMMUNICATIONMOCK_H
+#ifndef PERIPHERY_MANAGER_HWMOCK_H
+#define PERIPHERY_MANAGER_HWMOCK_H
 
 #include <vector>
 #include <cstdint>
 #include <iostream>
 #include "Logger/Logger.h"
-#include "PeripheryManager/CommunicationInterface.h"
+#include "PeripheryManager/HwInterface.h"
 
-class CommunicationMock : public CommunicationInterface {
+class HwMock : public HwInterface {
 public:
-    CommunicationMock() = default;
-    ~CommunicationMock() override = default;
+    HwMock() = default;
+    ~HwMock() override = default;
     std::vector<uint8_t> read() override;
     uint8_t write(const std::vector<uint8_t>& tx_data) override;
     bool init() override;
@@ -20,13 +20,13 @@ private:
     std::vector<uint8_t> last_tx_data_;
 };
 
-std::vector<uint8_t> CommunicationMock::read() {
+std::vector<uint8_t> HwMock::read() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     return last_tx_data_;
 }
 
-uint8_t CommunicationMock::write(const std::vector<uint8_t> &tx_data) {
+uint8_t HwMock::write(const std::vector<uint8_t> &tx_data) {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     last_tx_data_ = tx_data;
@@ -34,16 +34,16 @@ uint8_t CommunicationMock::write(const std::vector<uint8_t> &tx_data) {
     return tx_data.size();
 }
 
-bool CommunicationMock::init() {
+bool HwMock::init() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     return true;
 }
 
-bool CommunicationMock::deinit() {
+bool HwMock::deinit() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     return true;
 }
 
-#endif //PERIPHERY_MANAGER_COMMUNICATIONMOCK_H
+#endif //PERIPHERY_MANAGER_HWMOCK_H

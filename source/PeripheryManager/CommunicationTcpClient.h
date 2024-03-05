@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <arpa/inet.h>
-#include "CommunicationInterface.h"
+#include "HwInterface.h"
 
-class CommunicationTcpClient : public CommunicationInterface {
+class CommunicationTcpClient : public HwInterface {
 public:
     CommunicationTcpClient(const std::string& server_ip, int server_port);
     ~CommunicationTcpClient() override;

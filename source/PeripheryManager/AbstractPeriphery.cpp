@@ -1,8 +1,8 @@
 #include <iostream>
 #include "Logger/Logger.h"
-#include "PeripheryManager/AbstractPeriphery.h"
+#include "PeripheryManager/AbstractDevice.h"
 
-std::vector<uint8_t> AbstractPeriphery::readData() {
+std::vector<uint8_t> AbstractDevice::readData() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto rx_packet = communication_interface_->read();
@@ -11,7 +11,7 @@ std::vector<uint8_t> AbstractPeriphery::readData() {
     return data;
 }
 
-bool AbstractPeriphery::writeData(const std::vector<uint8_t> &tx_data) {
+bool AbstractDevice::writeData(const std::vector<uint8_t> &tx_data) {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     auto tx_packet = protocol_interface_->packData(tx_data);
@@ -19,7 +19,7 @@ bool AbstractPeriphery::writeData(const std::vector<uint8_t> &tx_data) {
     return tx_packet.size() == communication_interface_->write(tx_packet);
 }
 
-std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
+std::vector<uint8_t> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     std::vector<uint8_t> respose_rx;
@@ -34,7 +34,7 @@ std::vector<uint8_t> AbstractPeriphery::getDataSyncronously(const std::vector<ui
     return respose_rx;
 }
 
-std::future<std::vector<uint8_t>> AbstractPeriphery::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
+std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
 
     std::promise<std::vector<uint8_t>> prom;
@@ -55,7 +55,7 @@ std::future<std::vector<uint8_t>> AbstractPeriphery::getDataAsynchronously(const
     return future_result;
 }
 
-bool AbstractPeriphery::init() {
+bool AbstractDevice::init() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
     LOG_INFO("Init");
 
@@ -73,7 +73,7 @@ bool AbstractPeriphery::init() {
     return true;
 }
 
-bool AbstractPeriphery::deinit() {
+bool AbstractDevice::deinit() {
     LOG_TRACE("{}", __PRETTY_FUNCTION__);
     LOG_INFO("Deinit");
 
