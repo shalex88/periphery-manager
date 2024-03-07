@@ -7,12 +7,12 @@
 class LoggerInterface {
 public:
     enum class LogLevel {
-        Trace,
-        Debug,
-        Info,
-        Warn,
-        Error,
-        Critical
+        kTrace,
+        kDebug,
+        kInfo,
+        kWarn,
+        kError,
+        kCritical
     };
 
     virtual ~LoggerInterface() = default;
