@@ -1,5 +1,5 @@
-#ifndef PERIPHERY_MANAGER_LOOPBACKTCPSERVER_H
-#define PERIPHERY_MANAGER_LOOPBACKTCPSERVER_H
+#ifndef PERIPHERY_MANAGER_TCPSERVER_H
+#define PERIPHERY_MANAGER_TCPSERVER_H
 
 #include <string>
 #include <thread>
@@ -8,22 +8,23 @@
 #include <iostream>
 #include <netinet/in.h>
 
-class LoopbackTcpServer {
+class TcpServer {
 public:
     std::atomic<bool> terminate_server_{false};
     std::thread server_thread_;
     int server_socket_;
     int port_;
 
-    LoopbackTcpServer() : server_socket_(-1), port_(0) {}
+    TcpServer(int port) : server_socket_(-1), port_(port) {}
 
-    void startServer(int port) {
-        this->port_ = port;
+    bool init() {
         terminate_server_ = false;
-        server_thread_ = std::thread(&LoopbackTcpServer::runServer, this);
+        server_thread_ = std::thread(&TcpServer::runServer, this);
+
+        return true;
     }
 
-    void stopServer() {
+    bool deinit() {
         terminate_server_ = true;
         if (server_socket_ != -1) {
             close(server_socket_);
@@ -33,11 +34,13 @@ public:
             server_thread_.join();
         }
 
-        std::cout << "[Loopback TCP Server] Stopped" << std::endl;
+        std::cout << "[TCP Server] Stopped" << std::endl;
+
+        return true;
     }
 
-    ~LoopbackTcpServer() {
-        stopServer();
+    ~TcpServer() {
+        deinit();
     }
 
 private:
@@ -67,7 +70,7 @@ private:
         }
         listen(server_socket_, 5);
 
-        std::cout << "[Loopback TCP Server] Started" << std::endl;
+        std::cout << "[TCP Server] Started" << std::endl;
 
         while (!terminate_server_) {
             sockaddr_in client_addr{};
@@ -77,30 +80,44 @@ private:
                 if (terminate_server_) break; // Accept can fail if server is stopped
                 continue;
             }
-            std::cout << "[Loopback TCP Server] Client connected" << std::endl;
+            std::cout << "[TCP Server] Client connected" << std::endl;
 
             handleClient(client_socket);
         }
     }
 
-    void handleClient(int client_socket) const {
-        while (!terminate_server_) {
-            char buffer[1024] = {0};
-            ssize_t bytes_read = read(client_socket, buffer, sizeof(buffer));
-            if (bytes_read <= 0) {
-                break; // Client disconnected or error
-            }
-            // Echo received data back to client
-            std::cout << "[Loopback TCP Server] Loopback: ";
-            for (int i{}; i < bytes_read; i++) {
-                std::cout << static_cast<int>(buffer[i]) << " ";
-            }
-            std::cout << std::endl;
-            send(client_socket, buffer, bytes_read, 0);
+    bool handleMessage(int socket, uint8_t *buffer, size_t length) {
+        // Echo received data back to client
+        std::cout << "[TCP Server] Received: ";
+        for (int i{}; i < length; i++) {
+            std::cout << static_cast<int>(buffer[i]) << " ";
         }
-        std::cout << "[Loopback TCP Server] Client disconnected" << std::endl;
+        std::cout << std::endl;
+        this->write(socket, buffer, length);
+
+        return false;
+    }
+
+    void handleClient(int client_socket) {
+        while (!terminate_server_) {
+            uint8_t buffer[1024] = {0};
+            ssize_t bytes_read = this->read(client_socket, buffer, sizeof(buffer));
+            if (bytes_read <= 0) {
+                break;
+            }
+            handleMessage(client_socket, buffer, bytes_read);
+        }
+        std::cout << "[TCP Server] Client disconnected" << std::endl;
         close(client_socket);
+    }
+
+    ssize_t read(int socket, uint8_t* buffer, size_t length) {
+        return ::read(socket, buffer, length);
+    }
+
+    ssize_t write(int socket, const uint8_t* buffer, size_t length) {
+        return ::send(socket, buffer, length, 0);
     }
 };
 
-#endif //PERIPHERY_MANAGER_LOOPBACKTCPSERVER_H
+#endif //PERIPHERY_MANAGER_TCPSERVER_H
