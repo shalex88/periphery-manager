@@ -13,7 +13,7 @@ int main() {
     auto temp_sensor = std::make_shared<TemperatureSensor>(hw_interface, protocol_interface);
 
     // Default severity level is Info
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::Debug);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::kInfo);
 
     if (temp_sensor->init()) {
         LOG_INFO("{}", temp_sensor->getStatus());

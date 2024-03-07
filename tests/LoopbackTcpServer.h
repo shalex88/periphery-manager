@@ -5,6 +5,7 @@
 #include <thread>
 #include <atomic>
 #include <vector>
+#include <iostream>
 #include <netinet/in.h>
 
 class LoopbackTcpServer {

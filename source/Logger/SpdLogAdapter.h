@@ -33,17 +33,17 @@ private:
 
     spdlog::level::level_enum toSpdLogLevel(LogLevel level) {
         switch (level) {
-            case LogLevel::Trace:
+            case LogLevel::kTrace:
                 return spdlog::level::trace;
-            case LogLevel::Debug:
+            case LogLevel::kDebug:
                 return spdlog::level::debug;
-            case LogLevel::Info:
+            case LogLevel::kInfo:
                 return spdlog::level::info;
-            case LogLevel::Warn:
+            case LogLevel::kWarn:
                 return spdlog::level::warn;
-            case LogLevel::Error:
+            case LogLevel::kError:
                 return spdlog::level::err;
-            case LogLevel::Critical:
+            case LogLevel::kCritical:
                 return spdlog::level::critical;
             default:
                 return spdlog::level::info;

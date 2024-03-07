@@ -1,9 +1,9 @@
 #ifndef PERIPHERY_MANAGER_TCPCLIENT_H
 #define PERIPHERY_MANAGER_TCPCLIENT_H
 
-#include <vector>
+#include <string>
 #include <arpa/inet.h>
-#include "HwInterface.h"
+#include "PeripheryManager/HwInterface.h"
 
 class TcpClient : public HwInterface {
 public:
