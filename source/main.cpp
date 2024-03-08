@@ -1,5 +1,6 @@
 #include "PeripheryManager/HwMock.h"
-#include "PeripheryManager/TcpClient.h"
+//#include "PeripheryManager/TcpClient.h"
+#include "TcpServer/TcpServer.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "Logger/Logger.h"
@@ -21,6 +22,14 @@ int main() {
         LOG_INFO("{}", temp_sensor->getHumidity());
         LOG_INFO("{}", temp_sensor->getTemperatureAsynchronously());
         temp_sensor->deinit();
+    }
+
+    int tcp_server_port = 12345;
+    auto tcp_server = std::make_shared<TcpServer>(tcp_server_port);
+    tcp_server->init();
+
+    while(true) {
+
     }
 
     return 0;
