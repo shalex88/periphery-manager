@@ -3,7 +3,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include "Logger/Logger.h"
-#include "TcpServer.h"
+#include "TcpServer/TcpServer.h"
 
 TcpServer::TcpServer(int port) :
     server_socket_(-1), port_(port) {}
@@ -100,12 +100,12 @@ bool TcpServer::handleMessage(int socket, char* buffer, size_t length) {
     // Closing the byte values and the entire message
     os << "]" << std::endl;
 
-    LOG_INFO("{}", os.str());
+    LOG_TRACE("{}", os.str());
 
     const std::string reply{"OK"};
     this->write(socket, reply.c_str(), reply.length());
 
-    return false;
+    return true;
 }
 
 void TcpServer::handleClient(int client_socket) {

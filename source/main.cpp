@@ -14,13 +14,13 @@ int main() {
     auto temp_sensor = std::make_shared<TemperatureSensor>(hw_interface, protocol_interface);
 
     // Default severity level is Info
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kInfo);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::kTrace);
 
     if (temp_sensor->init()) {
-        LOG_INFO("{}", temp_sensor->getStatus());
-        LOG_INFO("{}", temp_sensor->getTemperature());
-        LOG_INFO("{}", temp_sensor->getHumidity());
-        LOG_INFO("{}", temp_sensor->getTemperatureAsynchronously());
+        LOG_DEBUG("{}", temp_sensor->getStatus());
+        LOG_DEBUG("{}", temp_sensor->getTemperature());
+        LOG_DEBUG("{}", temp_sensor->getHumidity());
+        LOG_DEBUG("{}", temp_sensor->getTemperatureAsynchronously());
         temp_sensor->deinit();
     }
 

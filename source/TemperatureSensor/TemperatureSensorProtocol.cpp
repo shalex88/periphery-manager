@@ -17,7 +17,7 @@ std::vector<uint8_t> TemperatureSensorProtocol::packData(const std::vector<uint8
 }
 
 void TemperatureSensorProtocol::logPackage(const std::string& message, const TemperatureSensorProtocol::Packet &serialized_packet) const {
-    LOG_DEBUG("{} {}", message, packetToString(serialized_packet));
+    LOG_TRACE("{} {}", message, packetToString(serialized_packet));
 }
 
 std::vector<uint8_t> TemperatureSensorProtocol::unpackData(const std::vector<uint8_t> &packet) {
