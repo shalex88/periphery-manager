@@ -172,3 +172,17 @@ TEST(LoggerTests, AbleToLogCritical){
 //    Compare the captured output with the expected output
     EXPECT_THAT(capture_cout.str(), ::testing::HasSubstr("critical"));
 }
+
+
+TEST(LoggerTests, SettingWrongSeverityLevelThrowsException){
+    auto wrong_severity = static_cast<LoggerInterface::LogLevel>(10);
+
+    EXPECT_THROW(Logger::getInstance().setLogLevel(wrong_severity), std::invalid_argument);
+}
+
+TEST(LoggerTests, LogWrongSeverityThrowsException){
+    auto wrong_severity = static_cast<LoggerInterface::LogLevel>(10);
+    std::string expected_output="Hello World!";
+
+    EXPECT_THROW(Logger::getInstance().log(wrong_severity,"{}", expected_output), std::invalid_argument);
+}

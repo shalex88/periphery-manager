@@ -1,3 +1,4 @@
+#include <thread>
 #include <iostream>
 #include "Logger/Logger.h"
 #include "PeripheryManager/AbstractDevice.h"

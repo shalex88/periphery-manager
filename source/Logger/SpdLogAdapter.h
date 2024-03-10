@@ -46,7 +46,7 @@ private:
             case LogLevel::kCritical:
                 return spdlog::level::critical;
             default:
-                return spdlog::level::info;
+                throw std::invalid_argument("Invalid log severity");
         }
     }
 };
