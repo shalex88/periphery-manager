@@ -24,8 +24,9 @@ int main() {
         temp_sensor->deinit();
     }
 
+    auto scheduler = std::make_shared<Scheduler>(4);
     int tcp_server_port = 12345;
-    auto tcp_server = std::make_shared<TcpServer>(tcp_server_port);
+    auto tcp_server = std::make_shared<TcpServer>(tcp_server_port, scheduler);
     tcp_server->init();
 
     while(true) {

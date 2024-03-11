@@ -5,15 +5,18 @@
 #include <atomic>
 #include <vector>
 #include <iostream>
+#include "TasksManager/Task.h"
+#include "TasksManager/Scheduler.h"
 
 class TcpServer {
 public:
     std::atomic<bool> terminate_server_{false};
     std::thread server_thread_;
-    int server_socket_;
+    int server_socket_ = -1;
     int port_;
 
-    explicit TcpServer(int port);
+    explicit TcpServer(int port); //TODO: remove
+    TcpServer(int port, std::shared_ptr<Scheduler>);
     ~TcpServer();
     bool init();
     bool deinit();
@@ -24,6 +27,8 @@ private:
     void handleClient(int client_socket);
     ssize_t read(int socket, char* buffer, size_t length);
     ssize_t write(int socket, const char* buffer, size_t length);
+    bool handleCommand(const std::string& command);
+    std::shared_ptr<Scheduler> scheduler_;
 };
 
 #endif //PERIPHERY_MANAGER_TCPSERVER_H

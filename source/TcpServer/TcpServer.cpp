@@ -1,12 +1,19 @@
 #include <string>
 #include <sstream>
+#include <utility>
 #include <netinet/in.h>
 #include <unistd.h>
 #include "Logger/Logger.h"
+#include "TasksManager/Scheduler.h"
 #include "TcpServer/TcpServer.h"
 
 TcpServer::TcpServer(int port) :
-    server_socket_(-1), port_(port) {}
+    port_(port), scheduler_(std::make_shared<Scheduler>()) {
+}
+
+TcpServer::TcpServer(int port, std::shared_ptr<Scheduler> scheduler) :
+    port_(port), scheduler_(std::move(scheduler)) {
+}
 
 TcpServer::~TcpServer() {
     deinit();
@@ -76,38 +83,6 @@ void TcpServer::runServer() {
     }
 }
 
-bool TcpServer::handleMessage(int socket, char* buffer, size_t length) {
-    // Initial part of the message
-    std::ostringstream os;
-    os << "[TCP Server] Received (" << length << " bytes): \"";
-
-    // Loop to print the character representations directly
-    for (int i = 0; i < length; i++) {
-        os << buffer[i];
-    }
-
-    // Closing the quoted string and starting the byte values
-    os << "\" [";
-
-    // Loop to print the byte values
-    for (int i = 0; i < length; i++) {
-        os << static_cast<int>(static_cast<unsigned char>(buffer[i]));
-        if (i < length - 1) {
-            os << " ";
-        }
-    }
-
-    // Closing the byte values and the entire message
-    os << "]" << std::endl;
-
-    LOG_TRACE("{}", os.str());
-
-    const std::string reply{"OK"};
-    this->write(socket, reply.c_str(), reply.length());
-
-    return true;
-}
-
 void TcpServer::handleClient(int client_socket) {
     while (!terminate_server_) {
         char buffer[1024] = {0};
@@ -127,4 +102,52 @@ ssize_t TcpServer::read(int socket, char *buffer, size_t length) {
 
 ssize_t TcpServer::write(int socket, const char *buffer, size_t length) {
     return ::send(socket, buffer, length, 0);
+}
+
+bool TcpServer::handleMessage(int socket, char* buffer, size_t length) {
+    // Initial part of the message
+    std::ostringstream os;
+    os << "[TCP Server] Received (" << length << " bytes): ";
+
+    os << std::string(buffer) << " [";
+
+    // Loop to print the byte values
+    for (int i = 0; i < length; i++) {
+        os << static_cast<int>(static_cast<unsigned char>(buffer[i]));
+        if (i < length - 1) {
+            os << " ";
+        }
+    }
+
+    // Closing the byte values and the entire message
+    os << "]";
+
+    LOG_TRACE("{}", os.str());
+
+    std::string reply{};
+    if (handleCommand(std::string(buffer))) {
+        reply = "Ack";
+    } else {
+        reply = "Nack";
+    }
+    this->write(socket, reply.c_str(), reply.length());
+
+    return true;
+}
+
+bool TcpServer::handleCommand(const std::string& command) {
+    std::shared_ptr<ITask> task;
+
+    if ( command == "temp") {
+        task = std::make_shared<GetTempCommand>();
+    } else if (command == "stop") {
+        task = std::make_shared<StopCommand>();
+    } else {
+        LOG_WARN("Unknown Command");
+        return false;
+    }
+
+    scheduler_->enqueueTask(task);
+
+    return true;
 }
