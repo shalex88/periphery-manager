@@ -1,3 +1,4 @@
+#include <csignal>
 #include "PeripheryManager/HwMock.h"
 //#include "PeripheryManager/TcpClient.h"
 #include "TcpServer/TcpServer.h"
@@ -24,7 +25,9 @@ int main() {
         temp_sensor->deinit();
     }
 
-    auto scheduler = std::make_shared<Scheduler>(4);
+    uint32_t cores_num = sysconf(_SC_NPROCESSORS_ONLN);
+    LOG_INFO("CPU cores number is {}", cores_num);
+    auto scheduler = std::make_shared<Scheduler>(cores_num);
     int tcp_server_port = 12345;
     auto tcp_server = std::make_shared<TcpServer>(tcp_server_port, scheduler);
     tcp_server->init();
