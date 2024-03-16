@@ -1,6 +1,10 @@
-@startuml reg-manager
+@startuml periphery-manager
 'https://plantuml.com/class-diagram
 skinparam classAttributeIconSize 0
+
+header
+    periphery-manager - Class Diagram
+endheader
 
 'Classes
 
