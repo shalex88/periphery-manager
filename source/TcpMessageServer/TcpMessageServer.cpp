@@ -7,12 +7,8 @@
 #include "TasksManager/Scheduler.h"
 #include "TcpMessageServer/TcpMessageServer.h"
 
-TcpMessageServer::TcpMessageServer(int port) :
-    port_(port), scheduler_(std::make_shared<Scheduler>()) {
-}
-
-TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<Scheduler> scheduler) :
-    port_(port), scheduler_(std::move(scheduler)) {
+TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<Scheduler> scheduler, std::shared_ptr<CommandDispatcher> command_dispatcher) :
+        port_(port), scheduler_(std::move(scheduler)), command_dispatcher_(std::move(command_dispatcher)) {
 }
 
 TcpMessageServer::~TcpMessageServer() {
@@ -61,7 +57,7 @@ void TcpMessageServer::runServer() {
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(port_);
 
-    if (bind(server_socket_, (struct sockaddr *) &server_addr, sizeof(server_addr))) {
+    if (bind(server_socket_, (struct sockaddr*) &server_addr, sizeof(server_addr))) {
         perror("bind");
         exit(EXIT_FAILURE);
     }
@@ -72,7 +68,7 @@ void TcpMessageServer::runServer() {
     while (!terminate_server_) {
         sockaddr_in client_addr{};
         socklen_t client_addr_len = sizeof(client_addr);
-        int client_socket = accept(server_socket_, (struct sockaddr *) &client_addr, &client_addr_len);
+        int client_socket = accept(server_socket_, (struct sockaddr*) &client_addr, &client_addr_len);
         if (client_socket < 0) {
             if (terminate_server_) break; // Accept can fail if server is stopped
             continue;
@@ -96,11 +92,11 @@ void TcpMessageServer::handleClient(int client_socket) {
     close(client_socket);
 }
 
-ssize_t TcpMessageServer::read(int socket, char *buffer, size_t length) {
+ssize_t TcpMessageServer::read(int socket, char* buffer, size_t length) {
     return ::read(socket, buffer, length);
 }
 
-ssize_t TcpMessageServer::write(int socket, const char *buffer, size_t length) {
+ssize_t TcpMessageServer::write(int socket, const char* buffer, size_t length) {
     return ::send(socket, buffer, length, 0);
 }
 
@@ -124,30 +120,13 @@ bool TcpMessageServer::handleMessage(int socket, char* buffer, size_t length) {
 
     LOG_TRACE("{}", os.str());
 
-    std::string reply{};
-    if (handleCommand(std::string(buffer))) {
-        reply = "Ack";
-    } else {
-        reply = "Nack";
-    }
-    this->write(socket, reply.c_str(), reply.length());
+    handleCommand(std::string(buffer));
 
     return true;
 }
 
 bool TcpMessageServer::handleCommand(const std::string& command) {
-    std::shared_ptr<CommandInterface> task;
-
-    if ( command == "temp") {
-        task = std::make_shared<GetTempCommand>();
-    } else if (command == "stop") {
-        task = std::make_shared<StopCommand>();
-    } else {
-        LOG_WARN("Unknown Command");
-        return false;
-    }
-
-    scheduler_->enqueueTask(task);
+    command_dispatcher_->dispatchCommand(command);
 
     return true;
 }

@@ -2,6 +2,7 @@
 #define PERIPHERY_MANAGER_COMMAND_H
 
 #include "Logger/Logger.h"
+#include "TemperatureSensor/TemperatureSensor.h"
 
 class CommandInterface {
 public:
@@ -9,25 +10,21 @@ public:
     virtual ~CommandInterface() = default;
 };
 
-class Command : public CommandInterface{
+class GetTempCommand : public CommandInterface {
 public:
-    void execute() override {
-        LOG_INFO("Task1 received");
-    }
+    GetTempCommand(std::shared_ptr<TemperatureSensor> sensor) : sensor_(sensor) {}
 
-    ~Command() override = default;
-};
-
-class GetTempCommand : public CommandInterface{
-public:
     void execute() override {
-        LOG_INFO("Get temp");
+        sensor_->getTemperature();
     }
 
     ~GetTempCommand() override = default;
+
+private:
+    std::shared_ptr<TemperatureSensor> sensor_;
 };
 
-class StopCommand : public CommandInterface{
+class StopCommand : public CommandInterface {
 public:
     void execute() override {
         LOG_INFO("Stop");

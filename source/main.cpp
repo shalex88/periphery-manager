@@ -4,6 +4,7 @@
 #include "TcpMessageServer/TcpMessageServer.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
+#include "TasksManager/Command.h"
 #include "Logger/Logger.h"
 
 int main() {
@@ -28,8 +29,13 @@ int main() {
     uint32_t cores_num = sysconf(_SC_NPROCESSORS_ONLN);
     LOG_INFO("CPU cores number is {}", cores_num);
     auto scheduler = std::make_shared<Scheduler>(cores_num);
+
+    auto dispatcher = std::make_shared<CommandDispatcher>();
+    dispatcher->registerCommand("stop", std::make_shared<StopCommand>());
+    dispatcher->registerCommand("temp", std::make_shared<GetTempCommand>(temp_sensor));
+
     int tcp_server_port = 12345;
-    auto tcp_server = std::make_shared<TcpMessageServer>(tcp_server_port, scheduler);
+    auto tcp_server = std::make_shared<TcpMessageServer>(tcp_server_port, scheduler, dispatcher);
     tcp_server->init();
 
     while(true) {

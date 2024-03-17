@@ -11,7 +11,7 @@ enum class Command {
 std::unordered_map<Command, std::vector<uint8_t>> command = {
     {Command::kGetStatus,      {1}},
     {Command::kGetTemperature, {25}},
-    {Command::kGetHumidity, {1, 1}}
+    {Command::kGetHumidity,    {1, 1}}
 };
 
 bool TemperatureSensor::enable() {

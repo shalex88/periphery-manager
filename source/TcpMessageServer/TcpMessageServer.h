@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include "TasksManager/Scheduler.h"
+#include "TasksManager/CommandDispatcher.h"
 
 class TcpMessageServer {
 public:
@@ -14,8 +15,7 @@ public:
     int server_socket_ = -1;
     int port_;
 
-    explicit TcpMessageServer(int port); //TODO: remove
-    TcpMessageServer(int port, std::shared_ptr<Scheduler>);
+    TcpMessageServer(int port, std::shared_ptr<Scheduler>, std::shared_ptr<CommandDispatcher>);
     ~TcpMessageServer();
     bool init();
     bool deinit();
@@ -28,6 +28,7 @@ private:
     ssize_t write(int socket, const char* buffer, size_t length);
     bool handleCommand(const std::string& command);
     std::shared_ptr<Scheduler> scheduler_;
+    std::shared_ptr<CommandDispatcher> command_dispatcher_;
 };
 
 #endif //PERIPHERY_MANAGER_TCPMESSAGESERVER_H
