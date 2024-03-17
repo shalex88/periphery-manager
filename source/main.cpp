@@ -1,7 +1,7 @@
 #include <csignal>
 #include "PeripheryManager/HwMock.h"
 //#include "PeripheryManager/TcpClient.h"
-#include "TcpServer/TcpServer.h"
+#include "TcpMessageServer/TcpMessageServer.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "Logger/Logger.h"
@@ -29,7 +29,7 @@ int main() {
     LOG_INFO("CPU cores number is {}", cores_num);
     auto scheduler = std::make_shared<Scheduler>(cores_num);
     int tcp_server_port = 12345;
-    auto tcp_server = std::make_shared<TcpServer>(tcp_server_port, scheduler);
+    auto tcp_server = std::make_shared<TcpMessageServer>(tcp_server_port, scheduler);
     tcp_server->init();
 
     while(true) {

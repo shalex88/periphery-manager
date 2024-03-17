@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "TcpServer/TcpServer.h"
+#include "TcpMessageServer/TcpMessageServer.h"
 #include "PeripheryManager/HwInterface.h"
 #include "PeripheryManager/TcpClient.h"
 
@@ -15,11 +15,11 @@
 class TcpServerTests : public testing::Test {
 public:
    std::shared_ptr<TcpClient> tcp_client_;
-    std::shared_ptr<TcpServer> tcp_server_;
+    std::shared_ptr<TcpMessageServer> tcp_server_;
     int port_ = 12345;
 
     void SetUp() override {
-        tcp_server_ = std::make_shared<TcpServer>(port_);
+        tcp_server_ = std::make_shared<TcpMessageServer>(port_);
         tcp_client_ = std::make_shared<TcpClient>("127.0.0.1", port_);
     }
 };

@@ -7,15 +7,15 @@
 #include <thread>
 #include <vector>
 #include <memory>
-#include "TasksManager/Task.h"
+#include "TasksManager/Command.h"
 
 class Scheduler {
 public:
     explicit Scheduler(size_t thread_count = 1);
     ~Scheduler();
-    void enqueueTask(const std::shared_ptr<ITask>& task);
+    void enqueueTask(const std::shared_ptr<CommandInterface>& task);
 private:
-    std::queue<std::shared_ptr<ITask>> tasks_;
+    std::queue<std::shared_ptr<CommandInterface>> tasks_;
     std::mutex queue_mutex_;
     std::condition_variable condition_;
     bool stop_ = false;

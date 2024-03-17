@@ -130,6 +130,15 @@ LoggerInterface "Library" ..> fmt
 SpdLogAdapter "Adapter\nTemplate method" --|> LoggerInterface
 StdoutAdapter "Adapter\nTemplate method" --|> LoggerInterface
 
+class TcpMessageServer {
+    +scheduler_
+    +command_
+}
+
+TcpMessageServer o-- Scheduler
+TcpMessageServer o-- CommandInterface
+GetTempCommand --|> CommandInterface
+
 'Notes
 
 note as UserCode

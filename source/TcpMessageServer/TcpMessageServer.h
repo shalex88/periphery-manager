@@ -1,23 +1,22 @@
-#ifndef PERIPHERY_MANAGER_TCPSERVER_H
-#define PERIPHERY_MANAGER_TCPSERVER_H
+#ifndef PERIPHERY_MANAGER_TCPMESSAGESERVER_H
+#define PERIPHERY_MANAGER_TCPMESSAGESERVER_H
 
 #include <thread>
 #include <atomic>
 #include <vector>
 #include <iostream>
-#include "TasksManager/Task.h"
 #include "TasksManager/Scheduler.h"
 
-class TcpServer {
+class TcpMessageServer {
 public:
     std::atomic<bool> terminate_server_{false};
     std::thread server_thread_;
     int server_socket_ = -1;
     int port_;
 
-    explicit TcpServer(int port); //TODO: remove
-    TcpServer(int port, std::shared_ptr<Scheduler>);
-    ~TcpServer();
+    explicit TcpMessageServer(int port); //TODO: remove
+    TcpMessageServer(int port, std::shared_ptr<Scheduler>);
+    ~TcpMessageServer();
     bool init();
     bool deinit();
 
@@ -31,4 +30,4 @@ private:
     std::shared_ptr<Scheduler> scheduler_;
 };
 
-#endif //PERIPHERY_MANAGER_TCPSERVER_H
+#endif //PERIPHERY_MANAGER_TCPMESSAGESERVER_H

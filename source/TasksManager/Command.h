@@ -1,24 +1,24 @@
-#ifndef PERIPHERY_MANAGER_TASK_H
-#define PERIPHERY_MANAGER_TASK_H
+#ifndef PERIPHERY_MANAGER_COMMAND_H
+#define PERIPHERY_MANAGER_COMMAND_H
 
 #include "Logger/Logger.h"
 
-class ITask {
+class CommandInterface {
 public:
     virtual void execute() = 0; // Pure virtual function for task execution
-    virtual ~ITask() = default;
+    virtual ~CommandInterface() = default;
 };
 
-class Task : public ITask{
+class Command : public CommandInterface{
 public:
     void execute() override {
         LOG_INFO("Task1 received");
     }
 
-    ~Task() override = default;
+    ~Command() override = default;
 };
 
-class GetTempCommand : public ITask{
+class GetTempCommand : public CommandInterface{
 public:
     void execute() override {
         LOG_INFO("Get temp");
@@ -27,7 +27,7 @@ public:
     ~GetTempCommand() override = default;
 };
 
-class StopCommand : public ITask{
+class StopCommand : public CommandInterface{
 public:
     void execute() override {
         LOG_INFO("Stop");
@@ -37,4 +37,4 @@ public:
     ~StopCommand() override = default;
 };
 
-#endif //PERIPHERY_MANAGER_TASK_H
+#endif //PERIPHERY_MANAGER_COMMAND_H

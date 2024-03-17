@@ -5,28 +5,28 @@
 #include <unistd.h>
 #include "Logger/Logger.h"
 #include "TasksManager/Scheduler.h"
-#include "TcpServer/TcpServer.h"
+#include "TcpMessageServer/TcpMessageServer.h"
 
-TcpServer::TcpServer(int port) :
+TcpMessageServer::TcpMessageServer(int port) :
     port_(port), scheduler_(std::make_shared<Scheduler>()) {
 }
 
-TcpServer::TcpServer(int port, std::shared_ptr<Scheduler> scheduler) :
+TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<Scheduler> scheduler) :
     port_(port), scheduler_(std::move(scheduler)) {
 }
 
-TcpServer::~TcpServer() {
+TcpMessageServer::~TcpMessageServer() {
     deinit();
 }
 
-bool TcpServer::init() {
+bool TcpMessageServer::init() {
     terminate_server_ = false;
-    server_thread_ = std::thread(&TcpServer::runServer, this);
+    server_thread_ = std::thread(&TcpMessageServer::runServer, this);
 
     return true;
 }
 
-bool TcpServer::deinit() {
+bool TcpMessageServer::deinit() {
     terminate_server_ = true;
     if (server_socket_ != -1) {
         close(server_socket_);
@@ -41,7 +41,7 @@ bool TcpServer::deinit() {
     return true;
 }
 
-void TcpServer::runServer() {
+void TcpMessageServer::runServer() {
     sockaddr_in server_addr{};
     int opt = 1;
 
@@ -83,7 +83,7 @@ void TcpServer::runServer() {
     }
 }
 
-void TcpServer::handleClient(int client_socket) {
+void TcpMessageServer::handleClient(int client_socket) {
     while (!terminate_server_) {
         char buffer[1024] = {0};
         ssize_t bytes_read = this->read(client_socket, buffer, sizeof(buffer));
@@ -96,15 +96,15 @@ void TcpServer::handleClient(int client_socket) {
     close(client_socket);
 }
 
-ssize_t TcpServer::read(int socket, char *buffer, size_t length) {
+ssize_t TcpMessageServer::read(int socket, char *buffer, size_t length) {
     return ::read(socket, buffer, length);
 }
 
-ssize_t TcpServer::write(int socket, const char *buffer, size_t length) {
+ssize_t TcpMessageServer::write(int socket, const char *buffer, size_t length) {
     return ::send(socket, buffer, length, 0);
 }
 
-bool TcpServer::handleMessage(int socket, char* buffer, size_t length) {
+bool TcpMessageServer::handleMessage(int socket, char* buffer, size_t length) {
     // Initial part of the message
     std::ostringstream os;
     os << "[TCP Server] Received (" << length << " bytes): ";
@@ -135,8 +135,8 @@ bool TcpServer::handleMessage(int socket, char* buffer, size_t length) {
     return true;
 }
 
-bool TcpServer::handleCommand(const std::string& command) {
-    std::shared_ptr<ITask> task;
+bool TcpMessageServer::handleCommand(const std::string& command) {
+    std::shared_ptr<CommandInterface> task;
 
     if ( command == "temp") {
         task = std::make_shared<GetTempCommand>();

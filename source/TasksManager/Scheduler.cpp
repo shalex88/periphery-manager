@@ -1,40 +1,50 @@
 #include "TasksManager/Scheduler.h"
 
+// Worker function that will be run by each thread in the pool.
 void Scheduler::workerFunction() {
-    while (true) {
-        std::shared_ptr<ITask> task;
+    while (true) { // Infinite loop to keep threads alive and fetching tasks.
+        std::shared_ptr<CommandInterface> task; // Pointer to the next task to be executed.
         {
+            // Locking the queue with a mutex to ensure thread-safe access.
             std::unique_lock<std::mutex> lock(queue_mutex_);
+            // Wait on a condition variable until there is a task available or the scheduler is stopped.
             condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
-            if (stop_ && tasks_.empty()) return;
-            task = tasks_.front();
-            tasks_.pop();
-        }
-        task->execute();
+            if (stop_ && tasks_.empty()) return; // If stopping and no tasks left, exit the function (and thus the thread).
+            task = tasks_.front(); // Get the next task from the queue.
+            tasks_.pop(); // Remove the task from the queue.
+        } // The lock is released here as the scope ends.
+
+        task->execute(); // Execute the fetched task.
     }
 }
 
-void Scheduler::enqueueTask(const std::shared_ptr<ITask>& task) {
+// Function to add a task to the queue.
+void Scheduler::enqueueTask(const std::shared_ptr<CommandInterface>& task) {
     {
+        // Locking the queue with a mutex to ensure thread-safe access.
         std::unique_lock<std::mutex> lock(queue_mutex_);
-        tasks_.push(task);
+        tasks_.push(task); // Add the task to the queue.
     }
-    condition_.notify_one();
+    condition_.notify_one(); // Notify one worker thread that a task is available.
 }
 
+// Destructor to clean up when the Scheduler is being destroyed.
 Scheduler::~Scheduler() {
     {
+        // Locking the queue with a mutex to safely change the stop flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
-        stop_ = true;
+        stop_ = true; // Set the stop flag to true.
     }
-    condition_.notify_all();
-    for (auto &thread: worker_threads_) {
-        thread.join();
+    condition_.notify_all(); // Notify all worker threads to wake up, potentially to stop.
+    for (auto &thread: worker_threads_) { // For each worker thread,
+        thread.join(); // wait for it to finish execution.
     }
 }
 
+// Constructor that initializes the Scheduler with a given number of worker threads.
 Scheduler::Scheduler(size_t thread_count) {
     for (size_t i = 0; i < thread_count; ++i) {
+        // Create worker threads, each running the workerFunction.
         worker_threads_.emplace_back(&Scheduler::workerFunction, this);
     }
 }
