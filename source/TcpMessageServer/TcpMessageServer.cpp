@@ -4,11 +4,10 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include "Logger/Logger.h"
-#include "TasksManager/Scheduler.h"
 #include "TcpMessageServer/TcpMessageServer.h"
 
-TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<Scheduler> scheduler, std::shared_ptr<CommandDispatcher> command_dispatcher) :
-        port_(port), scheduler_(std::move(scheduler)), command_dispatcher_(std::move(command_dispatcher)) {
+TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<CommandDispatcher> command_dispatcher) :
+        port_(port), command_dispatcher_(std::move(command_dispatcher)) {
 }
 
 TcpMessageServer::~TcpMessageServer() {
@@ -86,7 +85,7 @@ void TcpMessageServer::handleClient(int client_socket) {
         if (bytes_read <= 0) {
             break;
         }
-        handleMessage(client_socket, buffer, bytes_read);
+        handleMessage(buffer, bytes_read);
     }
     LOG_INFO("[TCP Server] Client disconnected");
     close(client_socket);
@@ -100,7 +99,7 @@ ssize_t TcpMessageServer::write(int socket, const char* buffer, size_t length) {
     return ::send(socket, buffer, length, 0);
 }
 
-bool TcpMessageServer::handleMessage(int socket, char* buffer, size_t length) {
+bool TcpMessageServer::handleMessage(char* buffer, size_t length) {
     // Initial part of the message
     std::ostringstream os;
     os << "[TCP Server] Received (" << length << " bytes): ";
@@ -120,13 +119,7 @@ bool TcpMessageServer::handleMessage(int socket, char* buffer, size_t length) {
 
     LOG_TRACE("{}", os.str());
 
-    handleCommand(std::string(buffer));
-
-    return true;
-}
-
-bool TcpMessageServer::handleCommand(const std::string& command) {
-    command_dispatcher_->dispatchCommand(command);
+    command_dispatcher_->dispatchCommand(std::string(buffer));
 
     return true;
 }

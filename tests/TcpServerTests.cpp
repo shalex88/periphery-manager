@@ -16,10 +16,14 @@ class TcpServerTests : public testing::Test {
 public:
    std::shared_ptr<TcpClient> tcp_client_;
     std::shared_ptr<TcpMessageServer> tcp_server_;
+    std::shared_ptr<Scheduler> scheduler_;
+    std::shared_ptr<CommandDispatcher> dispatcher_;
     int port_ = 12345;
 
     void SetUp() override {
-        tcp_server_ = std::make_shared<TcpMessageServer>(port_);
+        scheduler_ = std::make_shared<Scheduler>();
+        dispatcher_ = std::make_shared<CommandDispatcher>(scheduler_);
+        tcp_server_ = std::make_shared<TcpMessageServer>(port_, dispatcher_);
         tcp_client_ = std::make_shared<TcpClient>("127.0.0.1", port_);
     }
 };

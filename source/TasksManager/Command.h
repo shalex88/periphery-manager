@@ -6,7 +6,7 @@
 
 class CommandInterface {
 public:
-    virtual void execute() = 0; // Pure virtual function for task execution
+    virtual void execute() = 0;
     virtual ~CommandInterface() = default;
 };
 

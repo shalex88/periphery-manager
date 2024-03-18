@@ -5,7 +5,6 @@
 #include <atomic>
 #include <vector>
 #include <iostream>
-#include "TasksManager/Scheduler.h"
 #include "TasksManager/CommandDispatcher.h"
 
 class TcpMessageServer {
@@ -15,19 +14,17 @@ public:
     int server_socket_ = -1;
     int port_;
 
-    TcpMessageServer(int port, std::shared_ptr<Scheduler>, std::shared_ptr<CommandDispatcher>);
+    TcpMessageServer(int port, std::shared_ptr<CommandDispatcher>);
     ~TcpMessageServer();
     bool init();
     bool deinit();
 
 private:
     void runServer();
-    bool handleMessage(int socket, char* buffer, size_t length);
+    bool handleMessage(char* buffer, size_t length);
     void handleClient(int client_socket);
     ssize_t read(int socket, char* buffer, size_t length);
     ssize_t write(int socket, const char* buffer, size_t length);
-    bool handleCommand(const std::string& command);
-    std::shared_ptr<Scheduler> scheduler_;
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
 };
 
