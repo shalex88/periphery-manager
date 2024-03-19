@@ -68,6 +68,7 @@ void TcpMessageServer::runServer() {
         sockaddr_in client_addr{};
         socklen_t client_addr_len = sizeof(client_addr);
         int client_socket = accept(server_socket_, (struct sockaddr*) &client_addr, &client_addr_len);
+        client_socket_ = client_socket; //FIXME: can work only for one client, needed for sendResponse()
         if (client_socket < 0) {
             if (terminate_server_) break; // Accept can fail if server is stopped
             continue;
@@ -85,7 +86,7 @@ void TcpMessageServer::handleClient(int client_socket) {
         if (bytes_read <= 0) {
             break;
         }
-        handleMessage(buffer, bytes_read);
+        getRequest(buffer, bytes_read);
     }
     LOG_INFO("[TCP Server] Client disconnected");
     close(client_socket);
@@ -99,7 +100,7 @@ ssize_t TcpMessageServer::write(int socket, const char* buffer, size_t length) {
     return ::send(socket, buffer, length, 0);
 }
 
-bool TcpMessageServer::handleMessage(char* buffer, size_t length) {
+bool TcpMessageServer::getRequest(char* buffer, size_t length) {
     // Initial part of the message
     std::ostringstream os;
     os << "[TCP Server] Received (" << length << " bytes): ";
@@ -122,4 +123,14 @@ bool TcpMessageServer::handleMessage(char* buffer, size_t length) {
     command_dispatcher_->dispatchCommand(std::string(buffer));
 
     return true;
+}
+
+bool TcpMessageServer::sendResponse(const std::string& response) {
+    auto bytes_sent = this->write(client_socket_, response.c_str(), response.size());
+
+    if (bytes_sent > 0) {
+        return true;
+    }
+
+    return false;
 }
