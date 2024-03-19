@@ -1,9 +1,10 @@
+#include <utility>
 #include "TasksManager/Scheduler.h"
 
 // Worker function that will be run by each thread in the pool.
 void Scheduler::workerFunction() {
     while (true) { // Infinite loop to keep threads alive and fetching tasks.
-        std::shared_ptr<CommandInterface> task; // Pointer to the next task to be executed.
+        std::shared_ptr<Task> task; // Pointer to the next task to be executed.
         {
             // Locking the queue with a mutex to ensure thread-safe access.
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -14,15 +15,16 @@ void Scheduler::workerFunction() {
             tasks_.pop(); // Remove the task from the queue.
         } // The lock is released here as the scope ends.
 
-        task->execute(); // Execute the fetched task.
+        task->command_->execute(task->request_src_); // Execute the fetched task.
     }
 }
 
 // Function to add a task to the queue.
-void Scheduler::enqueueTask(const std::shared_ptr<CommandInterface>& task) {
+void Scheduler::enqueueTask(std::shared_ptr<InputInterface> responder, const std::shared_ptr<CommandInterface>& command) {
     {
         // Locking the queue with a mutex to ensure thread-safe access.
         std::unique_lock<std::mutex> lock(queue_mutex_);
+        auto task = std::make_shared<Task>(std::move(responder), command);
         tasks_.push(task); // Add the task to the queue.
     }
     condition_.notify_one(); // Notify one worker thread that a task is available.

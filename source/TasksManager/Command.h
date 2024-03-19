@@ -1,21 +1,24 @@
 #ifndef PERIPHERY_MANAGER_COMMAND_H
 #define PERIPHERY_MANAGER_COMMAND_H
 
+#include <utility>
 #include "Logger/Logger.h"
 #include "TemperatureSensor/TemperatureSensor.h"
+#include "TcpMessageServer/InputInterface.h"
 
 class CommandInterface {
 public:
-    virtual void execute() = 0;
+    virtual void execute(std::shared_ptr<InputInterface> responder) = 0;
     virtual ~CommandInterface() = default;
 };
 
 class GetTempCommand : public CommandInterface {
 public:
-    GetTempCommand(std::shared_ptr<TemperatureSensor> sensor) : sensor_(sensor) {}
+    explicit GetTempCommand(std::shared_ptr<TemperatureSensor> sensor) : sensor_(std::move(sensor)) {}
 
-    void execute() override {
-        sensor_->getTemperature();
+    void execute(std::shared_ptr<InputInterface> responder) override {
+        auto temperature = sensor_->getTemperature();
+        responder->sendResponse(std::string(reinterpret_cast<char*>(&temperature)));
     }
 
     ~GetTempCommand() override = default;
@@ -26,7 +29,8 @@ private:
 
 class StopCommand : public CommandInterface {
 public:
-    void execute() override {
+    void execute(std::shared_ptr<InputInterface> responder) override {
+        responder->sendResponse("Ack");
         LOG_INFO("Stop");
         exit(EXIT_SUCCESS);
     }

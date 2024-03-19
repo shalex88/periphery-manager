@@ -5,17 +5,25 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <utility>
 #include <vector>
 #include <memory>
 #include "TasksManager/Command.h"
+#include "TcpMessageServer/InputInterface.h"
 
 class Scheduler {
 public:
     explicit Scheduler(size_t thread_count = 1);
     ~Scheduler();
-    void enqueueTask(const std::shared_ptr<CommandInterface>& task);
+    void enqueueTask(std::shared_ptr<InputInterface> responder, const std::shared_ptr<CommandInterface>& command);
 private:
-    std::queue<std::shared_ptr<CommandInterface>> tasks_;
+    struct Task {
+        std::shared_ptr<InputInterface> request_src_;
+        std::shared_ptr<CommandInterface> command_;
+        Task(std::shared_ptr<InputInterface> request_src, std::shared_ptr<CommandInterface> command)
+                : request_src_(std::move(request_src)), command_(std::move(command)) {}
+    };
+    std::queue<std::shared_ptr<Task>> tasks_;
     std::mutex queue_mutex_;
     std::condition_variable condition_;
     bool stop_ = false;

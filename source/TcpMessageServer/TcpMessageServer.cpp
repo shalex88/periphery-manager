@@ -120,7 +120,7 @@ bool TcpMessageServer::getRequest(char* buffer, size_t length) {
 
     LOG_TRACE("{}", os.str());
 
-    command_dispatcher_->dispatchCommand(std::string(buffer));
+    command_dispatcher_->dispatchCommand(shared_from_this(), std::string(buffer));
 
     return true;
 }

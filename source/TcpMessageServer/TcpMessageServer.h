@@ -6,18 +6,19 @@
 #include <vector>
 #include <iostream>
 #include "TasksManager/CommandDispatcher.h"
+#include "TcpMessageServer/InputInterface.h"
 
-class TcpMessageServer {
+class TcpMessageServer : public InputInterface {
 public:
     TcpMessageServer(int port, std::shared_ptr<CommandDispatcher>);
-    ~TcpMessageServer();
+    ~TcpMessageServer() override;
     bool init();
     bool deinit();
+    bool sendResponse(const std::string& response) override;
 
 private:
     void runServer();
     bool getRequest(char* buffer, size_t length);
-    bool sendResponse(const std::string& response);
     void handleClient(int client_socket);
     ssize_t read(int socket, char* buffer, size_t length);
     ssize_t write(int socket, const char* buffer, size_t length);
