@@ -18,10 +18,10 @@ public:
     void enqueueTask(std::shared_ptr<InputInterface> responder, const std::shared_ptr<CommandInterface>& command);
 private:
     struct Task {
-        std::shared_ptr<InputInterface> request_src_;
+        std::shared_ptr<InputInterface> requester_;
         std::shared_ptr<CommandInterface> command_;
-        Task(std::shared_ptr<InputInterface> request_src, std::shared_ptr<CommandInterface> command)
-                : request_src_(std::move(request_src)), command_(std::move(command)) {}
+        Task(std::shared_ptr<InputInterface> requester, std::shared_ptr<CommandInterface> command)
+                : requester_(std::move(requester)), command_(std::move(command)) {}
     };
     std::queue<std::shared_ptr<Task>> tasks_;
     std::mutex queue_mutex_;

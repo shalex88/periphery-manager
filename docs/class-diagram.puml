@@ -6,168 +6,172 @@ header
     periphery-manager - Class Diagram
 endheader
 
-'Classes
+package "Logger" {
+    object spdlog <<Library>> {
+    }
 
-object spdlog {
+    object fmt <<Library>> {
+    }
+
+    interface LoggerInterface {
+        +log(LogLevel level, const std::string &format, Args &&... args) : void
+        #{abstract}logImpl(LogLevel level, const std::string &msg) : void
+    }
+
+    class Logger {
+    }
+
+    class SpdLogAdapter implements LoggerInterface {
+        +logImpl()
+    }
+
+    class StdoutAdapter implements LoggerInterface {
+        +logImpl()
+    }
+
+    Logger ..> LoggerInterface
+    Logger ..> SpdLogAdapter
+    SpdLogAdapter ..> spdlog
+    LoggerInterface ..> fmt
+'    SpdLogAdapter "Adapter\nTemplate method" --|> LoggerInterface
+'    StdoutAdapter "Adapter\nTemplate method" --|> LoggerInterface
 }
 
-object fmt {
+package "Slave Device" {
+    abstract AbstractDevice {
+        -hw_interface_ : std::shared_ptr<HwInterface>
+        -protocol_interface_ : std::shared_ptr<ProtocolInterface>
+        +init() : uint8_t
+        +deinit() : uint8_t
+        +{abstract}getStatus() : uint8_t
+        #AbstractDevice(std::shared_ptr<HwInterface> hw_interface,
+            std::shared_ptr<ProtocolInterface> protocol_interface)
+        #getDataSyncroniously(std::vector<uint8_t> &tx_data) : std::vector<uint8_t>
+        #getDataAsyncroniously(std::vector<uint8_t> &tx_data) : std::vector<uint8_t>
+        #initCommunication() : uint8_t
+        -writeData(const std::vector<uint8_t> data) : void
+        -readData() : std::vector<uint8_t>
+        -{abstract}enable() : uint8_t
+        -{abstract}disable() : uint8_t
+    }
+
+    class SensorMock implements AbstractDevice {
+        +SensorMock(std::shared_ptr<HwInterface> hw_interface,
+            std::shared_ptr<ProtocolInterface> protocol_interface)
+        +init() : uint8_t
+        +deinit() : uint8_t
+        +getStatus() : uint8_t
+    }
+
+    class TemperatureSensor implements AbstractDevice {
+        +TemperatureSensor(std::shared_ptr<HwInterface> hw_interface,
+            std::shared_ptr<ProtocolInterface> protocol_interface)
+        +getStatus() : uint8_t
+        +getTemperature() : uint8_t
+        +getTemperatureAsynchronously() : std::future<uint8_t>
+        -enable() : uint8_t
+        -disable() : uint8_t
+    }
+
+    interface HwInterface {
+        +{abstract} write(const std::vector<uint8_t>& data) : void
+        +{abstract} read() : std::vector<uint8_t>
+        +{abstract} init() : bool
+        +{abstract} deinit() : bool
+    }
+
+    class HwMock  implements HwInterface {
+        +write(const std::vector<uint8_t>& data) : void
+        +read() : std::vector<uint8_t>
+        +init() : bool
+        +deinit() : bool
+    }
+
+    class Uart implements HwInterface {
+        +write(const std::vector<uint8_t>& data) : void
+        +read() : std::vector<uint8_t>
+        +init() : bool
+        +deinit() : bool
+    }
+
+    class Ethernet implements HwInterface {
+        +write(const std::vector<uint8_t>& data) : void
+        +read() : std::vector<uint8_t>
+        +init() : bool
+        +deinit() : bool
+    }
+
+    interface ProtocolInterface {
+        +{abstract}packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+        +{abstract}unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+    }
+
+    class TemperatureSensorProtocol implements ProtocolInterface {
+        +packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+        +unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+    }
+
+    class ProtocolMock implements ProtocolInterface {
+        +packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+        +unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
+    }
+
+    AbstractDevice::hw_interface_ "Strategy" o-- HwInterface
+    AbstractDevice::protocol_interface_ "Strategy" o-- ProtocolInterface
 }
 
-interface LoggerInterface {
-    +log(LogLevel level, const std::string &format, Args &&... args) : void
-    #{abstract}logImpl(LogLevel level, const std::string &msg) : void
+package "Events Mechanism" {
+    interface "InputInterface : std::enable_shared_from_this<InputInterface>" {
+    +{abstract} sendResponse(const std::string& response) : bool
+    }
+
+    class TcpMessageServer implements "InputInterface : std::enable_shared_from_this<InputInterface>" {
+        -command_dispatcher_ : std::shared_ptr<CommandDispatcher>
+        +handleMessage(char* buffer, size_t length) : bool
+        +sendResponse(const std::string& response) : bool
+    }
+
+    rectangle "Command Pattern" {
+    class Scheduler {
+        -tasks_ : std::queue<std::shared_ptr<Task>> tasks_
+        +enqueueTask(std::shared_ptr<InputInterface> responder, const std::shared_ptr<CommandInterface>& command) : void
+        +workerFunction() : void
+    }
+
+    struct Task {
+        requester_ : std::shared_ptr<InputInterface>
+        command_ : std::shared_ptr<CommandInterface>
+    }
+
+    class CommandDispatcher {
+        -scheduler_ : std::shared_ptr<Scheduler>
+        -command_map_ : std::unordered_map<std::string, std::shared_ptr<CommandInterface>>
+        +registerCommand(const std::string& command_name, std::shared_ptr<CommandInterface> command) : void
+        +dispatchCommand(std::shared_ptr<InputInterface> requester, const std::string& command_name) : void
+    }
+
+    interface CommandInterface {
+        +{abstract}execute(std::shared_ptr<InputInterface> requester)
+    }
+
+    class StopCommand implements CommandInterface {
+        +execute(std::shared_ptr<InputInterface> requester)
+    }
+
+    class GetTempCommand implements CommandInterface {
+        -sensor_ : std::shared_ptr<TemperatureSensor>
+        +execute(std::shared_ptr<InputInterface> requester)
+    }
+
+    TcpMessageServer::command_dispatcher_ o-- CommandDispatcher : command_dispatcher_->dispatchCommand(shared_from_this(), buffer) >
+    CommandDispatcher::scheduler_ o-- Scheduler : scheduler_->enqueueTask(requester, command) >
+    CommandDispatcher --> CommandInterface
+    Scheduler::tasks_ *-- Task
+    Scheduler --> CommandInterface : task->command_->execute(task->requester_) >
+    }
 }
 
-class Logger {
-}
-
-class SpdLogAdapter {
-    +logImpl()
-}
-
-class StdoutAdapter {
-    +logImpl()
-}
-
-abstract AbstractDevice {
-    -hw_interface_ : std::shared_ptr<HwInterface>
-    -protocol_interface_ : std::shared_ptr<ProtocolInterface>
-    +init() : uint8_t
-    +deinit() : uint8_t
-    +{abstract}getStatus() : uint8_t
-    #AbstractDevice(std::shared_ptr<HwInterface> hw_interface,
-        std::shared_ptr<ProtocolInterface> protocol_interface)
-    #getDataSyncroniously(std::vector<uint8_t> &tx_data) : std::vector<uint8_t>
-    #getDataAsyncroniously(std::vector<uint8_t> &tx_data) : std::vector<uint8_t>
-    #initCommunication() : uint8_t
-    -writeData(const std::vector<uint8_t> data) : void
-    -readData() : std::vector<uint8_t>
-    -{abstract}enable() : uint8_t
-    -{abstract}disable() : uint8_t
-}
-
-class SensorMock {
-    +SensorMock(std::shared_ptr<HwInterface> hw_interface,
-        std::shared_ptr<ProtocolInterface> protocol_interface)
-    +init() : uint8_t
-    +deinit() : uint8_t
-    +getStatus() : uint8_t
-}
-
-class TemperatureSensor {
-    +TemperatureSensor(std::shared_ptr<HwInterface> hw_interface,
-        std::shared_ptr<ProtocolInterface> protocol_interface)
-    +getStatus() : uint8_t
-    +getTemperature() : uint8_t
-    +getTemperatureAsynchronously() : std::future<uint8_t>
-    -enable() : uint8_t
-    -disable() : uint8_t
-}
-
-interface HwInterface {
-    +{abstract} write(const std::vector<uint8_t>& data) : void
-    +{abstract} read() : std::vector<uint8_t>
-    +{abstract} init() : bool
-    +{abstract} deinit() : bool
-}
-
-class HwMock {
-    +write(const std::vector<uint8_t>& data) : void
-    +read() : std::vector<uint8_t>
-    +init() : bool
-    +deinit() : bool
-}
-
-class Uart {
-    +write(const std::vector<uint8_t>& data) : void
-    +read() : std::vector<uint8_t>
-    +init() : bool
-    +deinit() : bool
-}
-
-class Ethernet {
-    +write(const std::vector<uint8_t>& data) : void
-    +read() : std::vector<uint8_t>
-    +init() : bool
-    +deinit() : bool
-}
-
-interface ProtocolInterface {
-    +{abstract}packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
-    +{abstract}unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
-}
-
-class TemperatureSensorProtocol {
-    +packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
-    +unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
-}
-
-class ProtocolMock {
-    +packData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
-    +unpackData(const std::vector<uint8_t>& data) : std::vector<uint8_t>
-}
-
-'Relations
-
-SensorMock --|> AbstractDevice
-TemperatureSensor --|> AbstractDevice
-
-AbstractDevice "Strategy" o-- HwInterface
-AbstractDevice "Strategy" o-- ProtocolInterface
-
-TemperatureSensorProtocol --|> ProtocolInterface
-ProtocolMock --|> ProtocolInterface
-
-HwMock --|> HwInterface
-Uart --|> HwInterface
-Ethernet --|> HwInterface
-
-Logger ..> LoggerInterface
-Logger ..> SpdLogAdapter
-SpdLogAdapter "Library" ..> spdlog
-LoggerInterface "Library" ..> fmt
-SpdLogAdapter "Adapter\nTemplate method" --|> LoggerInterface
-StdoutAdapter "Adapter\nTemplate method" --|> LoggerInterface
-
-class Scheduler {
-    -tasks_ : std::queue<std::shared_ptr<CommandInterface>>
-    +enqueueTask(const std::shared_ptr<CommandInterface>& task) : void
-    +workerFunction() : void
-}
-
-class TcpMessageServer {
-    -command_dispatcher_ : std::shared_ptr<CommandDispatcher>
-    +handleMessage(char* buffer, size_t length) : bool
-}
-
-class CommandDispatcher {
-    -scheduler_ : std::shared_ptr<Scheduler>
-    -command_map_ : std::unordered_map<std::string, std::shared_ptr<CommandInterface>>
-    +registerCommand(const std::string& command_name, std::shared_ptr<CommandInterface> command) : void
-    +dispatchCommand(const std::string& command_name) : void
-}
-
-interface CommandInterface {
-    +{abstract}execute()
-}
-
-class StopCommand {
-    +execute()
-}
-
-class GetTempCommand {
-    -sensor_ : std::shared_ptr<TemperatureSensor>
-    +execute()
-}
-
-TcpMessageServer o-- CommandDispatcher
-CommandDispatcher o-- Scheduler
-CommandDispatcher --> CommandInterface
-StopCommand --|> CommandInterface
-GetTempCommand --|> CommandInterface
-
-'Notes
+GetTempCommand::sensor_ o-- TemperatureSensor
 
 note as UserCode
     LOG_INFO("periphery-manager {}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);

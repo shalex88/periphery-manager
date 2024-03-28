@@ -16,9 +16,9 @@ class GetTempCommand : public CommandInterface {
 public:
     explicit GetTempCommand(std::shared_ptr<TemperatureSensor> sensor) : sensor_(std::move(sensor)) {}
 
-    void execute(std::shared_ptr<InputInterface> responder) override {
+    void execute(std::shared_ptr<InputInterface> requester) override {
         auto temperature = sensor_->getTemperature();
-        responder->sendResponse(std::string(reinterpret_cast<char*>(&temperature)));
+        requester->sendResponse(std::string(reinterpret_cast<char*>(&temperature)));
     }
 
     ~GetTempCommand() override = default;
@@ -29,8 +29,8 @@ private:
 
 class StopCommand : public CommandInterface {
 public:
-    void execute(std::shared_ptr<InputInterface> responder) override {
-        responder->sendResponse("Ack");
+    void execute(std::shared_ptr<InputInterface> requester) override {
+        requester->sendResponse("Ack");
         LOG_INFO("Stop");
         exit(EXIT_SUCCESS);
     }

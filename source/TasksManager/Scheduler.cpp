@@ -15,7 +15,7 @@ void Scheduler::workerFunction() {
             tasks_.pop(); // Remove the task from the queue.
         } // The lock is released here as the scope ends.
 
-        task->command_->execute(task->request_src_); // Execute the fetched task.
+        task->command_->execute(task->requester_); // Execute the fetched task.
     }
 }
 

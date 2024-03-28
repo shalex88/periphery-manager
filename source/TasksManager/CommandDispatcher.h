@@ -12,7 +12,7 @@ class CommandDispatcher {
 public:
     explicit CommandDispatcher(std::shared_ptr<Scheduler> scheduler);
     void registerCommand(const std::string& command_name, std::shared_ptr<CommandInterface> command);
-    void dispatchCommand(std::shared_ptr<InputInterface> request_src, const std::string& command_name);
+    void dispatchCommand(std::shared_ptr<InputInterface> requester, const std::string& command_name);
 private:
     std::unordered_map<std::string, std::shared_ptr<CommandInterface>> command_map_;
     std::shared_ptr<Scheduler> scheduler_;
