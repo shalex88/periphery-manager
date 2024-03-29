@@ -86,7 +86,7 @@ void TcpMessageServer::handleClient(int client_socket) {
         if (bytes_read <= 0) {
             break;
         }
-        getRequest(buffer, bytes_read);
+        getRequest(client_socket, buffer, bytes_read);
     }
     LOG_INFO("[TCP Server] Client disconnected");
     close(client_socket);
@@ -100,10 +100,10 @@ ssize_t TcpMessageServer::write(int socket, const char* buffer, size_t length) {
     return ::send(socket, buffer, length, 0);
 }
 
-bool TcpMessageServer::getRequest(char* buffer, size_t length) {
+bool TcpMessageServer::getRequest(int client, char* buffer, size_t length) {
     // Initial part of the message
     std::ostringstream os;
-    os << "[TCP Server] Received (" << length << " bytes): ";
+    os << "[TCP Server] Received from client " << client <<" (" << length << " bytes): ";
 
     os << std::string(buffer) << " [";
 
@@ -120,13 +120,14 @@ bool TcpMessageServer::getRequest(char* buffer, size_t length) {
 
     LOG_TRACE("{}", os.str());
 
-    command_dispatcher_->dispatchCommand(shared_from_this(), std::string(buffer));
+    auto requester = std::make_shared<InputInterface::Requester>(shared_from_this(), client);
+    command_dispatcher_->dispatchCommand(requester, std::string(buffer));
 
     return true;
 }
 
-bool TcpMessageServer::sendResponse(const std::string& response) {
-    auto bytes_sent = this->write(client_socket_, response.c_str(), response.size());
+bool TcpMessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) {
+    auto bytes_sent = this->write(requester->id_, response.c_str(), response.size());
 
     if (bytes_sent > 0) {
         return true;

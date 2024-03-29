@@ -14,11 +14,11 @@ public:
     ~TcpMessageServer() override;
     bool init();
     bool deinit();
-    bool sendResponse(const std::string& response) override;
+    bool sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) override;
 
 private:
     void runServer();
-    bool getRequest(char* buffer, size_t length);
+    bool getRequest(int client, char* buffer, size_t length);
     void handleClient(int client_socket);
     ssize_t read(int socket, char* buffer, size_t length);
     ssize_t write(int socket, const char* buffer, size_t length);

@@ -8,14 +8,14 @@ void CommandDispatcher::registerCommand(const std::string& command_name, std::sh
     command_map_[command_name] = std::move(command);
 }
 
-void CommandDispatcher::dispatchCommand(std::shared_ptr<InputInterface> requester, const std::string& command_name) {
+void CommandDispatcher::dispatchCommand(std::shared_ptr<InputInterface::Requester> requester, const std::string& command_name) {
     {
         std::lock_guard<std::mutex> lock(map_mutex_);
         auto it = command_map_.find(command_name);
         if (it != command_map_.end()) {
             scheduler_->enqueueTask(std::move(requester), it->second);
         } else {
-            requester->sendResponse("Nack");
+            requester->input_interface_->sendResponse(requester, "Nack");
             LOG_ERROR("Unknown command");
         }
     }

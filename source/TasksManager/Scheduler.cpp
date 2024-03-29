@@ -20,11 +20,11 @@ void Scheduler::workerFunction() {
 }
 
 // Function to add a task to the queue.
-void Scheduler::enqueueTask(std::shared_ptr<InputInterface> responder, const std::shared_ptr<CommandInterface>& command) {
+void Scheduler::enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command) {
     {
         // Locking the queue with a mutex to ensure thread-safe access.
         std::unique_lock<std::mutex> lock(queue_mutex_);
-        auto task = std::make_shared<Task>(std::move(responder), command);
+        auto task = std::make_shared<Task>(std::move(requester), command);
         tasks_.push(task); // Add the task to the queue.
     }
     condition_.notify_one(); // Notify one worker thread that a task is available.
