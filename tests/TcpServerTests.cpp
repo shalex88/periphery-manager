@@ -8,13 +8,13 @@
 // TEST PLAN
 // + Can start server
 // + Can stop server
-// - Can read data from client
-// - Can send data to client
-// - Can handle multiple clients
+// + Can read data from client
+// + Can send data to client
+// + Can handle multiple clients
 
 class TcpServerTests : public testing::Test {
 public:
-   std::shared_ptr<TcpClient> tcp_client_;
+    std::shared_ptr<TcpClient> tcp_client_;
     std::shared_ptr<TcpMessageServer> tcp_server_;
     std::shared_ptr<Scheduler> scheduler_;
     std::shared_ptr<CommandDispatcher> dispatcher_;
@@ -25,6 +25,11 @@ public:
         dispatcher_ = std::make_shared<CommandDispatcher>(scheduler_);
         tcp_server_ = std::make_shared<TcpMessageServer>(port_, dispatcher_);
         tcp_client_ = std::make_shared<TcpClient>("127.0.0.1", port_);
+    }
+
+    void TearDown() override {
+        //Provide time for the server to shut down gracefully
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 };
 
@@ -40,11 +45,21 @@ TEST_F(TcpServerTests, ServerCanBeConnectedTo) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
     EXPECT_EQ(tcp_client_->init(), true);
-
-    tcp_server_->deinit();
 }
 
-TEST_F(TcpServerTests, ClientCanWriteAndRead) {
+TEST_F(TcpServerTests, ServerCanRecieveMultipleClients) {
+    tcp_server_->init();
+
+    // Wait for the server to be ready
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    EXPECT_EQ(tcp_client_->init(), true);
+
+    auto second_tcp_client = std::make_shared<TcpClient>("127.0.0.1", port_);
+    EXPECT_EQ(second_tcp_client->init(), true);
+}
+
+TEST_F(TcpServerTests, ServerCanBeWriteToAndReadFrom) {
     tcp_server_->init();
 
     // Wait for the server to be ready
@@ -58,7 +73,4 @@ TEST_F(TcpServerTests, ClientCanWriteAndRead) {
 
     // Wait for the server to be ready
     std::this_thread::sleep_for(std::chrono::seconds(2));
-
-    tcp_client_->deinit();
-    tcp_server_->deinit();
 }

@@ -61,25 +61,25 @@ TEST_F(TemperatureSensorTests, DeviceInitFailsIfPowerOnFails) {
 
 TEST_F(TemperatureSensorTests, AbleToDeinit) {
     EXPECT_CALL(*device, disable())
-            .WillOnce(testing::Return(true));
+            .WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*hw_interface, deinit())
-            .WillOnce(testing::Return(true));
+            .WillRepeatedly(testing::Return(true));
 
     EXPECT_EQ(device->deinit(), true);
 }
 
 TEST_F(TemperatureSensorTests, DeinitFailsIfHwConnectionFails) {
     EXPECT_CALL(*hw_interface, deinit())
-            .WillOnce(testing::Return(false));
+            .WillRepeatedly(testing::Return(false));
 
     EXPECT_EQ(device->deinit(), false);
 }
 
 TEST_F(TemperatureSensorTests, DeinitFailsIfPowerOffFails) {
     EXPECT_CALL(*hw_interface, deinit())
-            .WillOnce(testing::Return(true));
+            .WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*device, disable())
-            .WillOnce(testing::Return(false));
+            .WillRepeatedly(testing::Return(false));
 
     EXPECT_EQ(device->deinit(), false);
 }
