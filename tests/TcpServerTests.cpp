@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "TcpMessageServer/TcpMessageServer.h"
+#include "AppInputs/TcpMessageServer.h"
 #include "PeripheryManager/HwInterface.h"
 #include "PeripheryManager/TcpClient.h"
 

@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include "Logger/Logger.h"
-#include "TcpMessageServer/TcpMessageServer.h"
+#include "TcpMessageServer.h"
 
 TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<CommandDispatcher> command_dispatcher) :
         port_(port), command_dispatcher_(std::move(command_dispatcher)) {
@@ -49,13 +49,13 @@ void TcpMessageServer::runServer() {
 
     // Creating socket file descriptor
     if ((server_socket_ = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("socket failed");
+        LOG_ERROR("[TCP Server] Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
     // Forcefully attaching socket to the port
     if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("setsockopt");
+        LOG_ERROR("[TCP Server] Socket attach failed");
         exit(EXIT_FAILURE);
     }
 
@@ -64,7 +64,7 @@ void TcpMessageServer::runServer() {
     server_addr.sin_port = htons(port_);
 
     if (bind(server_socket_, (struct sockaddr*) &server_addr, sizeof(server_addr))) {
-        perror("bind");
+        LOG_ERROR("[TCP Server] Binding failed");
         exit(EXIT_FAILURE);
     }
     listen(server_socket_, 5);
@@ -90,11 +90,11 @@ void TcpMessageServer::handleClient(int client_socket) {
     // Set client socket to non-blocking mode
     int flags = fcntl(client_socket, F_GETFL, 0);
     if (flags == -1) {
-        std::cerr << "Error getting socket flags\n";
+        LOG_ERROR("[TCP Server] Error getting socket flags");
         return;
     }
     if (fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
-        std::cerr << "Error setting socket to non-blocking\n";
+        LOG_ERROR("[TCP Server] Error setting socket to non-blocking");
         return;
     }
 
@@ -115,25 +115,20 @@ void TcpMessageServer::handleClient(int client_socket) {
         retval = select(client_socket + 1, &read_fds, nullptr, nullptr, &tv);
 
         if (retval == -1) {
-            // Error occurred in select()
-            perror("select()");
+            LOG_ERROR("[TCP Server] Listening to socket failed");
             break;
         } else if (retval) {
             // Data is available to be read
             memset(buffer, 0, sizeof(buffer));
-            bytes_read = read(client_socket, buffer, sizeof(buffer) - 1);
+            bytes_read = ::read(client_socket, buffer, sizeof(buffer) - 1);
             if (bytes_read > 0) {
-                // Process the received data
                 getRequest(client_socket, buffer, bytes_read);
-                // You might want to send a response back to the client here
             } else if (bytes_read == 0) {
-                // Connection has been closed by the client
                 LOG_INFO("[TCP Server] Client {} disconnected", client_socket);
                 break;
             } else {
-                // Error occurred in read()
                 if (errno != EWOULDBLOCK && errno != EAGAIN) {
-                    perror("read()");
+                    LOG_INFO("[TCP Server] Reading failed");
                     break;
                 }
             }
@@ -142,14 +137,6 @@ void TcpMessageServer::handleClient(int client_socket) {
 
     close(client_socket);
     LOG_INFO("[TCP Server] Client {} disconnected", client_socket);
-}
-
-ssize_t TcpMessageServer::read(int socket, char* buffer, size_t length) {
-    return ::read(socket, buffer, length);
-}
-
-ssize_t TcpMessageServer::write(int socket, const char* buffer, size_t length) {
-    return ::send(socket, buffer, length, 0);
 }
 
 bool TcpMessageServer::getRequest(int client, char* buffer, size_t length) {
@@ -179,7 +166,7 @@ bool TcpMessageServer::getRequest(int client, char* buffer, size_t length) {
 }
 
 bool TcpMessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) {
-    auto bytes_sent = this->write(requester->id_, response.c_str(), response.size());
+    auto bytes_sent = send(requester->id_, response.c_str(), response.size(), 0);
 
     if (bytes_sent > 0) {
         return true;
@@ -205,7 +192,6 @@ bool TcpMessageServer::signalStopServer() const {
 }
 
 void TcpMessageServer::stopAllClientThreads() {
-    cv_.notify_all();
     // Assuming you're storing client thread references to join them
     // Make sure to lock around any shared data access if necessary
     for (auto& thread : client_threads_) {

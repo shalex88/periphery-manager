@@ -1,7 +1,7 @@
 #include <csignal>
 #include "PeripheryManager/HwMock.h"
 //#include "PeripheryManager/TcpClient.h"
-#include "TcpMessageServer/TcpMessageServer.h"
+#include "AppInputs/TcpMessageServer.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "TasksManager/Command.h"

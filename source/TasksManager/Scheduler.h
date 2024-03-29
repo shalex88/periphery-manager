@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 #include "TasksManager/Command.h"
-#include "TcpMessageServer/InputInterface.h"
+#include "AppInputs/InputInterface.h"
 
 class Scheduler {
 public:

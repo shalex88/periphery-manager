@@ -6,7 +6,7 @@
 #include <memory>
 #include "TasksManager/Command.h"
 #include "TasksManager/Scheduler.h"
-#include "TcpMessageServer/InputInterface.h"
+#include "AppInputs/InputInterface.h"
 
 class CommandDispatcher {
 public:

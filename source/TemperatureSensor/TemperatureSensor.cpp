@@ -14,6 +14,10 @@ std::unordered_map<Command, std::vector<uint8_t>> command = {
     {Command::kGetHumidity,    {1, 1}}
 };
 
+TemperatureSensor::~TemperatureSensor() {
+    deinit();
+}
+
 bool TemperatureSensor::enable() {
     LOG_INFO("Turn On Temperature Sensor");
 
@@ -57,8 +61,4 @@ uint8_t TemperatureSensor::getTemperatureAsynchronously() {
     prom.set_value(temperature);
 
     return temperature;
-}
-
-TemperatureSensor::~TemperatureSensor() {
-    deinit();
 }

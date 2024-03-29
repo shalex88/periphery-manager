@@ -5,7 +5,7 @@
 #include <csignal>
 #include "Logger/Logger.h"
 #include "TemperatureSensor/TemperatureSensor.h"
-#include "TcpMessageServer/InputInterface.h"
+#include "AppInputs/InputInterface.h"
 
 class CommandInterface {
 public:
