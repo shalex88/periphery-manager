@@ -8,7 +8,25 @@
 #include "TasksManager/Scheduler.h"
 #include "Logger/Logger.h"
 
+std::atomic<bool> shutdownRequested{false};
+
+void signalHandler(int signal) {
+    shutdownRequested = true;
+}
+
+void setupSignalHandling() {
+    struct sigaction sa;
+    sa.sa_handler = signalHandler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sigaction(SIGINT, &sa, nullptr);
+    sigaction(SIGTERM, &sa, nullptr);
+}
+
 int main() {
+    setupSignalHandling();
+
     LOG_INFO("periphery-manager {}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
     auto hw_interface = std::make_shared<HwMock>();
@@ -24,7 +42,6 @@ int main() {
         LOG_DEBUG("{}", temp_sensor->getTemperature());
         LOG_DEBUG("{}", temp_sensor->getHumidity());
         LOG_DEBUG("{}", temp_sensor->getTemperatureAsynchronously());
-        temp_sensor->deinit();
     }
 
     uint32_t cores_num = sysconf(_SC_NPROCESSORS_ONLN);
@@ -35,13 +52,14 @@ int main() {
     dispatcher->registerCommand("stop", std::make_shared<StopCommand>());
     dispatcher->registerCommand("temp", std::make_shared<GetTempCommand>(temp_sensor));
 
-    int tcp_server_port = 12345;
+    const int tcp_server_port = 12345;
     auto tcp_server = std::make_shared<TcpMessageServer>(tcp_server_port, dispatcher);
     tcp_server->init();
 
-    while(true) {
-
+    while(!shutdownRequested) {
     }
+
+    LOG_INFO("Terminating...");
 
     return 0;
 }

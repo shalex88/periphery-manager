@@ -3,6 +3,8 @@
 #include <utility>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
 #include "Logger/Logger.h"
 #include "TcpMessageServer/TcpMessageServer.h"
 
@@ -22,7 +24,12 @@ bool TcpMessageServer::init() {
 }
 
 bool TcpMessageServer::deinit() {
+    signalStopServer();
+
     terminate_server_ = true;
+
+    stopAllClientThreads();
+
     if (server_socket_ != -1) {
         close(server_socket_);
         server_socket_ = -1;
@@ -68,28 +75,73 @@ void TcpMessageServer::runServer() {
         sockaddr_in client_addr{};
         socklen_t client_addr_len = sizeof(client_addr);
         int client_socket = accept(server_socket_, (struct sockaddr*) &client_addr, &client_addr_len);
-        client_socket_ = client_socket; //FIXME: can work only for one client, needed for sendResponse()
         if (client_socket < 0) {
             if (terminate_server_) break; // Accept can fail if server is stopped
             continue;
         }
-        LOG_INFO("[TCP Server] Client connected");
+        LOG_INFO("[TCP Server] Client {} connected", client_socket);
 
-        handleClient(client_socket);
+        std::lock_guard<std::mutex> lock(client_threads_mutex_);
+        client_threads_.emplace_back(&TcpMessageServer::handleClient, this, client_socket);
     }
 }
 
 void TcpMessageServer::handleClient(int client_socket) {
-    while (!terminate_server_) {
-        char buffer[1024] = {0};
-        ssize_t bytes_read = this->read(client_socket, buffer, sizeof(buffer));
-        if (bytes_read <= 0) {
-            break;
-        }
-        getRequest(client_socket, buffer, bytes_read);
+    // Set client socket to non-blocking mode
+    int flags = fcntl(client_socket, F_GETFL, 0);
+    if (flags == -1) {
+        std::cerr << "Error getting socket flags\n";
+        return;
     }
-    LOG_INFO("[TCP Server] Client disconnected");
+    if (fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
+        std::cerr << "Error setting socket to non-blocking\n";
+        return;
+    }
+
+    fd_set read_fds;
+    struct timeval tv{};
+    int retval;
+    ssize_t bytes_read;
+    char buffer[1024]; // Adjust buffer size as needed
+
+    while (!terminate_server_) {
+        FD_ZERO(&read_fds);
+        FD_SET(client_socket, &read_fds);
+
+        // Set timeout to 1 second. Adjust as needed for responsiveness vs. resource usage
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+
+        retval = select(client_socket + 1, &read_fds, nullptr, nullptr, &tv);
+
+        if (retval == -1) {
+            // Error occurred in select()
+            perror("select()");
+            break;
+        } else if (retval) {
+            // Data is available to be read
+            memset(buffer, 0, sizeof(buffer));
+            bytes_read = read(client_socket, buffer, sizeof(buffer) - 1);
+            if (bytes_read > 0) {
+                // Process the received data
+                getRequest(client_socket, buffer, bytes_read);
+                // You might want to send a response back to the client here
+            } else if (bytes_read == 0) {
+                // Connection has been closed by the client
+                LOG_INFO("[TCP Server] Client {} disconnected", client_socket);
+                break;
+            } else {
+                // Error occurred in read()
+                if (errno != EWOULDBLOCK && errno != EAGAIN) {
+                    perror("read()");
+                    break;
+                }
+            }
+        }
+    }
+
     close(client_socket);
+    LOG_INFO("[TCP Server] Client {} disconnected", client_socket);
 }
 
 ssize_t TcpMessageServer::read(int socket, char* buffer, size_t length) {
@@ -134,4 +186,32 @@ bool TcpMessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> r
     }
 
     return false;
+}
+
+bool TcpMessageServer::signalStopServer() const {
+    // Connect to the server socket to unblock accept()
+    struct sockaddr_in addr{};
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port_);
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    if (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
+        close(sock);
+        return true;
+    }
+
+    return false;
+}
+
+void TcpMessageServer::stopAllClientThreads() {
+    cv_.notify_all();
+    // Assuming you're storing client thread references to join them
+    // Make sure to lock around any shared data access if necessary
+    for (auto& thread : client_threads_) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+    client_threads_.clear();
 }

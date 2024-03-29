@@ -58,3 +58,7 @@ uint8_t TemperatureSensor::getTemperatureAsynchronously() {
 
     return temperature;
 }
+
+TemperatureSensor::~TemperatureSensor() {
+    deinit();
+}

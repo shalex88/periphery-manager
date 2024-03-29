@@ -9,7 +9,7 @@ public:
     TemperatureSensor(std::shared_ptr<HwInterface> hw_interface,
                                std::shared_ptr<ProtocolInterface> protocol_interface) :
             AbstractDevice(std::move(hw_interface), std::move(protocol_interface)) {};
-    ~TemperatureSensor() override = default;
+    ~TemperatureSensor() override;
     uint8_t getStatus() override;
     uint8_t getTemperature();
     uint16_t getHumidity();

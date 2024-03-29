@@ -5,6 +5,7 @@
 #include <atomic>
 #include <vector>
 #include <iostream>
+#include <list>
 #include "TasksManager/CommandDispatcher.h"
 #include "TcpMessageServer/InputInterface.h"
 
@@ -20,14 +21,19 @@ private:
     void runServer();
     bool getRequest(int client, char* buffer, size_t length);
     void handleClient(int client_socket);
+    void stopAllClientThreads();
+    bool signalStopServer() const;
     ssize_t read(int socket, char* buffer, size_t length);
     ssize_t write(int socket, const char* buffer, size_t length);
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
     std::atomic<bool> terminate_server_{false};
+    std::list<std::thread> client_threads_;
+    std::mutex client_threads_mutex_;
     std::thread server_thread_;
     int server_socket_ {-1};
     int port_;
-    int client_socket_ {-1};
+    std::condition_variable stop_condition_;
+    std::condition_variable cv_;
 };
 
 #endif //PERIPHERY_MANAGER_TCPMESSAGESERVER_H

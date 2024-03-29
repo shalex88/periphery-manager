@@ -2,6 +2,7 @@
 #define PERIPHERY_MANAGER_COMMAND_H
 
 #include <utility>
+#include <csignal>
 #include "Logger/Logger.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TcpMessageServer/InputInterface.h"
@@ -33,7 +34,9 @@ public:
     void execute(std::shared_ptr<InputInterface::Requester> requester) override {
         requester->input_interface_->sendResponse(requester, "Ack");
         LOG_INFO("Stop");
-        exit(EXIT_SUCCESS);
+        if (kill(getpid(), SIGTERM) == -1) {
+            exit(EXIT_FAILURE);
+        }
     }
 
     ~StopCommand() override = default;
