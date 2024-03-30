@@ -79,7 +79,7 @@ void TcpMessageServer::runServer() {
             if (terminate_server_) break; // Accept can fail if server is stopped
             continue;
         }
-        LOG_INFO("[TCP Server] Client {} connected", client_socket);
+        LOG_TRACE("[TCP Server] Client {} connected", client_socket);
 
         std::lock_guard<std::mutex> lock(client_threads_mutex_);
         client_threads_.emplace_back(&TcpMessageServer::handleClient, this, client_socket);
@@ -124,11 +124,11 @@ void TcpMessageServer::handleClient(int client_socket) {
             if (bytes_read > 0) {
                 getRequest(client_socket, buffer, bytes_read);
             } else if (bytes_read == 0) {
-                LOG_INFO("[TCP Server] Client {} disconnected", client_socket);
+                LOG_TRACE("[TCP Server] Client {} disconnected", client_socket);
                 break;
             } else {
                 if (errno != EWOULDBLOCK && errno != EAGAIN) {
-                    LOG_INFO("[TCP Server] Reading failed");
+                    LOG_ERROR("[TCP Server] Reading failed");
                     break;
                 }
             }
@@ -136,7 +136,7 @@ void TcpMessageServer::handleClient(int client_socket) {
     }
 
     close(client_socket);
-    LOG_INFO("[TCP Server] Client {} disconnected", client_socket);
+    LOG_TRACE("[TCP Server] Client {} disconnected", client_socket);
 }
 
 bool TcpMessageServer::getRequest(int client, char* buffer, size_t length) {

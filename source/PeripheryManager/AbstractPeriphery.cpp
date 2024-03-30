@@ -49,8 +49,6 @@ std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const st
 }
 
 bool AbstractDevice::init() {
-    LOG_INFO("Init");
-
     if (enable()) {
         if (!communication_interface_->init()) {
             LOG_ERROR("Failed to connect");
@@ -66,8 +64,6 @@ bool AbstractDevice::init() {
 }
 
 bool AbstractDevice::deinit() {
-    LOG_INFO("Deinit");
-
     if (communication_interface_->deinit()) {
         if (!disable()) {
             LOG_ERROR("Failed to turn off");
