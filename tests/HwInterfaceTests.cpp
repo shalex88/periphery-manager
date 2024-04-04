@@ -7,7 +7,7 @@
 // + Read 8bit vector from interface
 // + Write 8bit vector to the interface
 
-class HwMock : public HwInterface {
+class HwInterfaceMock : public HwInterface {
 public:
     MOCK_METHOD0(read, std::vector<uint8_t>());
     MOCK_METHOD1(write, uint8_t(const std::vector<uint8_t>&));
@@ -16,7 +16,7 @@ public:
 };
 
 TEST(HwInterfaceTests, AbleToReadData) {
-    auto uart_interface = std::make_shared<HwMock>();
+    auto uart_interface = std::make_shared<HwInterfaceMock>();
 
     EXPECT_CALL(*uart_interface, read())
             .WillOnce(testing::Return(std::vector<uint8_t>{0, 1, 2}));
@@ -26,7 +26,7 @@ TEST(HwInterfaceTests, AbleToReadData) {
 }
 
 TEST(HwInterfaceTests, AbleToWriteData) {
-    auto uart_interface = std::make_shared<HwMock>();
+    auto uart_interface = std::make_shared<HwInterfaceMock>();
 
     auto tx_data = std::vector<uint8_t>{0, 1, 2};
 
