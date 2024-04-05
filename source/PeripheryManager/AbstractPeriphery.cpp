@@ -1,5 +1,6 @@
 #include <thread>
 #include <iostream>
+#include <optional>
 #include "Logger/Logger.h"
 #include "PeripheryManager/AbstractDevice.h"
 
@@ -16,31 +17,33 @@ bool AbstractDevice::writeData(const std::vector<uint8_t> &tx_data) {
     return tx_packet.size() == communication_interface_->write(tx_packet);
 }
 
-std::vector<uint8_t> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
-    assertIfDeviceIsDisabled();
-
+std::optional<std::vector<uint8_t>> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
     std::vector<uint8_t> respose_rx;
+
+    if (!isEnabled()) {
+        return std::nullopt;
+    }
 
     if (writeData(tx_data)) {
         respose_rx = readData();
+        return respose_rx;
     } else {
         LOG_ERROR("{}", "Not all data was written");
-        throw std::runtime_error("Not all data was written");
+        return std::nullopt;
     }
-
-    return respose_rx;
 }
 
-void AbstractDevice::assertIfDeviceIsDisabled() const {
-    //TODO: find better way than exception, don't stop execution
+bool AbstractDevice::isEnabled() const {
     if(!is_enabled_) {
         LOG_ERROR("{}", "Device is disabled");
-        throw std::runtime_error("Device is disabled");
+        return false;
     }
+
+    return true;
 }
 
 std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
-    assertIfDeviceIsDisabled();
+//    assertIfDeviceIsDisabled();
 
     std::promise<std::vector<uint8_t>> prom;
     auto future_result = prom.get_future();

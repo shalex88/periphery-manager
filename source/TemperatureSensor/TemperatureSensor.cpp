@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <optional>
 #include "Logger/Logger.h"
 #include "TemperatureSensor/TemperatureSensor.h"
 
@@ -30,24 +31,34 @@ bool TemperatureSensor::disable() {
     return true;
 }
 
-uint8_t TemperatureSensor::getStatus() {
-    auto status = getDataSyncronously(command[Command::kGetStatus]).at(0);
+std::optional<uint8_t> TemperatureSensor::getStatus() {
+    auto status = getDataSyncronously(command[Command::kGetStatus]);
 
-    return status;
+    if (status.has_value()) {
+        return status.value().at(0);
+    } else {
+        return std::nullopt;
+    }
 }
 
-uint8_t TemperatureSensor::getTemperature() {
-    auto temperature = getDataSyncronously(command[Command::kGetTemperature]).at(0);
+std::optional<uint8_t> TemperatureSensor::getTemperature() {
+    auto temperature = getDataSyncronously(command[Command::kGetTemperature]);
 
-    return temperature;
+    if (temperature.has_value()) {
+        return temperature.value().at(0);
+    } else {
+        return std::nullopt;
+    }
 }
 
-uint16_t TemperatureSensor::getHumidity() {
-    auto rx_data = getDataSyncronously(command[Command::kGetHumidity]);
+std::optional<uint16_t> TemperatureSensor::getHumidity() {
+    auto humidity = getDataSyncronously(command[Command::kGetHumidity]);
 
-    uint16_t humidity = (static_cast<uint16_t>(rx_data[0]) << 8) | static_cast<uint16_t>(rx_data[1]);
-
-    return humidity;
+    if (humidity.has_value()) {
+        return (static_cast<uint16_t>(humidity.value()[0]) << 8) | static_cast<uint16_t>(humidity.value()[1]);
+    } else {
+        return std::nullopt;
+    }
 }
 
 uint8_t TemperatureSensor::getTemperatureAsynchronously() {

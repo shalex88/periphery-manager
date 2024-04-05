@@ -10,9 +10,9 @@ public:
                                std::shared_ptr<ProtocolInterface> protocol_interface) :
             AbstractDevice(std::move(hw_interface), std::move(protocol_interface)) {};
     ~TemperatureSensor() override;
-    uint8_t getStatus() override;
-    uint8_t getTemperature();
-    uint16_t getHumidity();
+    std::optional<uint8_t> getStatus();
+    std::optional<uint8_t> getTemperature();
+    std::optional<uint16_t> getHumidity();
     uint8_t getTemperatureAsynchronously();
 private:
     bool enable() override;

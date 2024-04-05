@@ -19,8 +19,12 @@ public:
 
     void execute(std::shared_ptr<InputInterface::Requester> requester) override {
         auto temperature = sensor_->getTemperature();
-        requester->input_interface_->sendResponse(requester,
-                                std::string(reinterpret_cast<char*>(&temperature)));
+
+        if (temperature.has_value()) {
+            requester->input_interface_->sendResponse(requester, std::string(reinterpret_cast<char*>(&temperature.value()), 1));
+        } else {
+            requester->input_interface_->sendResponse(requester, "Nack");
+        }
     }
 
     ~GetTempCommand() override = default;
