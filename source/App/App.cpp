@@ -2,6 +2,7 @@
 #include "AppInputs/TcpMessageServer.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "PeripheryManager/HwMock.h"
+#include "App/SignalHandler.h"
 #include "App.h"
 
 bool App::keep_running_ = true;
@@ -11,17 +12,8 @@ void App::shutdown() {
     LOG_INFO("Terminating...");
 }
 
-void App::setupSignalHandling() {
-    auto signalHandler = [](int) {
-        shutdown();
-    };
-
-    signal(SIGINT, signalHandler);
-    signal(SIGTERM, signalHandler);
-}
-
 void App::run() {
-    setupSignalHandling();
+    SignalHandler::setupSignalHandling();
 
     keep_running_ = true;
 

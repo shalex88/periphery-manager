@@ -6,9 +6,9 @@ public:
     App() = default;
     ~App() = default;
     static void run();
-private:
     static void shutdown();
-    static void setupSignalHandling();
+
+private:
     static bool keep_running_;
 };
 
