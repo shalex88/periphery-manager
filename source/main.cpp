@@ -1,5 +1,5 @@
 #include "Logger/Logger.h"
-#include "AppManager/AppManager.h"
+#include "App/App.h"
 
 int main() {
     // Default severity level is Info
@@ -7,7 +7,7 @@ int main() {
 
     LOG_INFO("periphery-manager {}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
-    AppManager app;
+    App::run();
 
-    return AppManager::run();
+    return EXIT_SUCCESS;
 }

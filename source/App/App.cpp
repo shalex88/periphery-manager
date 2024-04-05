@@ -2,20 +2,16 @@
 #include "AppInputs/TcpMessageServer.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "PeripheryManager/HwMock.h"
-#include "AppManager.h"
+#include "App.h"
 
-bool AppManager::keep_running_ = true;
+bool App::keep_running_ = true;
 
-bool AppManager::init() {
-    return true;
-}
-
-void AppManager::shutdown() {
+void App::shutdown() {
     keep_running_ = false;
     LOG_INFO("Terminating...");
 }
 
-void AppManager::setupSignalHandling() {
+void App::setupSignalHandling() {
     auto signalHandler = [](int) {
         shutdown();
     };
@@ -24,7 +20,7 @@ void AppManager::setupSignalHandling() {
     signal(SIGTERM, signalHandler);
 }
 
-int AppManager::run() {
+void App::run() {
     setupSignalHandling();
 
     keep_running_ = true;
@@ -48,8 +44,6 @@ int AppManager::run() {
     tcp_server->init();
 
     while(keep_running_) {
-
+        //TODO: bit
     }
-
-    return EXIT_SUCCESS;
 }
