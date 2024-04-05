@@ -37,5 +37,6 @@ void App::run() {
 
     while(keep_running_) {
         //TODO: bit
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
