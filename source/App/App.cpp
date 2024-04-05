@@ -15,8 +15,6 @@ void App::shutdown() {
 void App::run() {
     SignalHandler::setupSignalHandling();
 
-    keep_running_ = true;
-
     auto hw_interface = std::make_shared<HwMock>();
 //    auto hw_interface = std::make_shared<TcpClient>("127.0.0.1", 12345);
     auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();

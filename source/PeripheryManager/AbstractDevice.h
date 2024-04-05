@@ -23,10 +23,12 @@ public:
 private:
     std::shared_ptr<HwInterface> communication_interface_;
     std::shared_ptr<ProtocolInterface> protocol_interface_;
+    bool is_enabled_{false};
     std::vector<uint8_t> readData();
     bool writeData(const std::vector<uint8_t> &tx_data);
     virtual bool enable() = 0;
     virtual bool disable() = 0;
+    void assertIfDeviceIsDisabled() const;
 };
 
 #endif //PERIPHERY_MANAGER_ABSTRACTDEVICE_H

@@ -17,9 +17,11 @@ bool AbstractDevice::writeData(const std::vector<uint8_t> &tx_data) {
 }
 
 std::vector<uint8_t> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
+    assertIfDeviceIsDisabled();
+
     std::vector<uint8_t> respose_rx;
 
-    if(writeData(tx_data)) {
+    if (writeData(tx_data)) {
         respose_rx = readData();
     } else {
         LOG_ERROR("{}", "Not all data was written");
@@ -29,7 +31,17 @@ std::vector<uint8_t> AbstractDevice::getDataSyncronously(const std::vector<uint8
     return respose_rx;
 }
 
+void AbstractDevice::assertIfDeviceIsDisabled() const {
+    //TODO: find better way than exception, don't stop execution
+    if(!is_enabled_) {
+        LOG_ERROR("{}", "Device is disabled");
+        throw std::runtime_error("Device is disabled");
+    }
+}
+
 std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
+    assertIfDeviceIsDisabled();
+
     std::promise<std::vector<uint8_t>> prom;
     auto future_result = prom.get_future();
 
@@ -60,18 +72,20 @@ bool AbstractDevice::init() {
         return false;
     }
 
-    return true;
+    return is_enabled_ = true;
 }
 
 bool AbstractDevice::deinit() {
-    if (communication_interface_->deinit()) {
-        if (!disable()) {
-            LOG_ERROR("Failed to turn off");
+    if (is_enabled_) {
+        if (communication_interface_->deinit()) {
+            if (!disable()) {
+                LOG_ERROR("Failed to turn off");
+                return false;
+            }
+        } else {
+            LOG_ERROR("Failed to disconnect");
             return false;
         }
-    } else {
-        LOG_ERROR("Failed to disconnect");
-        return false;
     }
 
     return true;
