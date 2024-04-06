@@ -7,7 +7,7 @@ class App {
 public:
     App() = default;
     ~App() = default;
-    static void run();
+    void run();
     static void shutdown();
 
 private:

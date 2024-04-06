@@ -7,7 +7,8 @@ int main() {
 
     LOG_INFO("periphery-manager {}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
-    App::run();
+    App app;
+    app.run();
 
     return EXIT_SUCCESS;
 }
