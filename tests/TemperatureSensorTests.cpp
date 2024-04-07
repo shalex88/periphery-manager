@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
+#include <optional>
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 
@@ -133,11 +134,11 @@ TEST_F(TemperatureSensorTestsAfterInit, AbleToGet2bytesHumidity) {
     EXPECT_EQ(device->getHumidity(), 257);
 }
 
-TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasWrittenToHw) {
+TEST_F(TemperatureSensorTestsAfterInit, NothingReturnsWhenNotAllPacketWasWrittenToHw) {
     EXPECT_CALL(*hw_interface, write(testing::_))
             .WillOnce(testing::Return(1));
 
-    EXPECT_THROW(device->getHumidity(), std::runtime_error);
+    EXPECT_EQ(device->getHumidity(), std::nullopt);
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasReadFromHw) {

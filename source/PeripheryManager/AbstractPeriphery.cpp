@@ -43,8 +43,6 @@ bool AbstractDevice::isEnabled() const {
 }
 
 std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
-//    assertIfDeviceIsDisabled();
-
     std::promise<std::vector<uint8_t>> prom;
     auto future_result = prom.get_future();
 
