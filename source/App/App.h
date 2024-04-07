@@ -1,6 +1,8 @@
 #ifndef PERIPHERY_MANAGER_APP_H
 #define PERIPHERY_MANAGER_APP_H
 
+#include <atomic>
+
 class App {
 public:
     App() = default;
@@ -9,7 +11,7 @@ public:
     static void shutdown();
 
 private:
-    static bool keep_running_;
+    static std::atomic<bool> keep_running_;
 };
 
 #endif //PERIPHERY_MANAGER_APP_H

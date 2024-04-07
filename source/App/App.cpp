@@ -5,7 +5,7 @@
 #include "App/SignalHandler.h"
 #include "App.h"
 
-bool App::keep_running_ = true;
+std::atomic<bool> App::keep_running_ = true;
 
 void App::shutdown() {
     keep_running_ = false;

@@ -34,7 +34,7 @@ public:
     void execute(std::shared_ptr<InputInterface::Requester> requester) override {
         requester->input_interface_->sendResponse(requester, "Ack");
         LOG_INFO("Stop");
-        if (kill(getpid(), SIGTERM) == -1) {
+        if (raise(SIGTERM) != 0) {
             exit(EXIT_FAILURE);
         }
     }
