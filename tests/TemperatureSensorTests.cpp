@@ -19,9 +19,9 @@ public:
     MOCK_METHOD0(disable, bool());
 };
 
-class TemperatureSensorTests : public testing::Test {
+class TemperatureSensorTestsBeforeInit : public testing::Test {
 public:
-    TemperatureSensorTests() :
+    TemperatureSensorTestsBeforeInit() :
             hw_interface(std::make_shared<HwInterfaceMock>()),
             protocol_interface(std::make_shared<TemperatureSensorProtocol>()),
             device(std::make_shared<TemperatureSensorMock>(hw_interface, protocol_interface)) {}
@@ -31,7 +31,17 @@ public:
     std::shared_ptr<TemperatureSensorMock> device;
 };
 
-TEST_F(TemperatureSensorTests, AbleInit) {
+class TemperatureSensorTestsAfterInit : public TemperatureSensorTestsBeforeInit {
+    void SetUp() override {
+        EXPECT_CALL(*device, enable())
+                .WillRepeatedly(testing::Return(true));
+        EXPECT_CALL(*hw_interface, init())
+                .WillRepeatedly(testing::Return(true));
+        device->init();
+    }
+};
+
+TEST_F(TemperatureSensorTestsBeforeInit, AbleInit) {
     EXPECT_CALL(*device, enable())
             .WillOnce(testing::Return(true));
     EXPECT_CALL(*hw_interface, init())
@@ -40,7 +50,7 @@ TEST_F(TemperatureSensorTests, AbleInit) {
     EXPECT_EQ(device->init(), true);
 }
 
-TEST_F(TemperatureSensorTests, DeviceInitFailsIfHwConnectionFails) {
+TEST_F(TemperatureSensorTestsBeforeInit, DeviceInitFailsIfHwConnectionFails) {
     EXPECT_CALL(*device, enable())
             .WillOnce(testing::Return(true));
     EXPECT_CALL(*hw_interface, init())
@@ -48,18 +58,21 @@ TEST_F(TemperatureSensorTests, DeviceInitFailsIfHwConnectionFails) {
     EXPECT_CALL(*device, disable())
             .WillOnce(testing::Return(true));
 
-
     EXPECT_EQ(device->init(), false);
 }
 
-TEST_F(TemperatureSensorTests, DeviceInitFailsIfPowerOnFails) {
+TEST_F(TemperatureSensorTestsBeforeInit, DeviceInitFailsIfPowerOnFails) {
     EXPECT_CALL(*device, enable())
             .WillOnce(testing::Return(false));
 
     EXPECT_EQ(device->init(), false);
 }
 
-TEST_F(TemperatureSensorTests, AbleToDeinit) {
+TEST_F(TemperatureSensorTestsBeforeInit, AbleToDeinitIfNotInited) {
+    EXPECT_EQ(device->deinit(), true);
+}
+
+TEST_F(TemperatureSensorTestsAfterInit, AbleToDeinitIfInited) {
     EXPECT_CALL(*device, disable())
             .WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*hw_interface, deinit())
@@ -68,14 +81,14 @@ TEST_F(TemperatureSensorTests, AbleToDeinit) {
     EXPECT_EQ(device->deinit(), true);
 }
 
-TEST_F(TemperatureSensorTests, DeinitFailsIfHwConnectionFails) {
+TEST_F(TemperatureSensorTestsAfterInit, DeinitFailsIfHwConnectionFails) {
     EXPECT_CALL(*hw_interface, deinit())
             .WillRepeatedly(testing::Return(false));
 
     EXPECT_EQ(device->deinit(), false);
 }
 
-TEST_F(TemperatureSensorTests, DeinitFailsIfPowerOffFails) {
+TEST_F(TemperatureSensorTestsAfterInit, DeinitFailsIfPowerOffFails) {
     EXPECT_CALL(*hw_interface, deinit())
             .WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*device, disable())
@@ -84,7 +97,7 @@ TEST_F(TemperatureSensorTests, DeinitFailsIfPowerOffFails) {
     EXPECT_EQ(device->deinit(), false);
 }
 
-TEST_F(TemperatureSensorTests, AbleToGetStatus) {
+TEST_F(TemperatureSensorTestsAfterInit, AbleToGetStatus) {
     std::vector<uint8_t> tx_packet = {'$', 1, 1, 1};
     std::vector<uint8_t> rx_packet = {'$', 1, 1, 1};
 
@@ -96,7 +109,7 @@ TEST_F(TemperatureSensorTests, AbleToGetStatus) {
     EXPECT_EQ(device->getStatus(), 1);
 }
 
-TEST_F(TemperatureSensorTests, AbleToGetTemperature) {
+TEST_F(TemperatureSensorTestsAfterInit, AbleToGetTemperature) {
     std::vector<uint8_t> tx_packet = {'$', 1, 25, 25};
     std::vector<uint8_t> rx_packet = {'$', 1, 25, 25};
 
@@ -108,7 +121,7 @@ TEST_F(TemperatureSensorTests, AbleToGetTemperature) {
     EXPECT_EQ(device->getTemperature(), 25);
 }
 
-TEST_F(TemperatureSensorTests, AbleToGet2bytesHumidity) {
+TEST_F(TemperatureSensorTestsAfterInit, AbleToGet2bytesHumidity) {
     std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
     std::vector<uint8_t> rx_packet = {'$', 2, 1, 1, 2};
 
@@ -120,14 +133,14 @@ TEST_F(TemperatureSensorTests, AbleToGet2bytesHumidity) {
     EXPECT_EQ(device->getHumidity(), 257);
 }
 
-TEST_F(TemperatureSensorTests, ExceptionThrownWhenNotAllPacketWasWrittenToHw) {
+TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasWrittenToHw) {
     EXPECT_CALL(*hw_interface, write(testing::_))
             .WillOnce(testing::Return(1));
 
     EXPECT_THROW(device->getHumidity(), std::runtime_error);
 }
 
-TEST_F(TemperatureSensorTests, ExceptionThrownWhenNotAllPacketWasReadFromHw) {
+TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasReadFromHw) {
     std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
     std::vector<uint8_t> rx_packet = {'$', 2, 1, 1};
 
@@ -139,7 +152,7 @@ TEST_F(TemperatureSensorTests, ExceptionThrownWhenNotAllPacketWasReadFromHw) {
     EXPECT_THROW(device->getHumidity(), std::runtime_error);
 }
 
-TEST_F(TemperatureSensorTests, ExceptionThrownWhenPacketIsTooSmall) {
+TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenPacketIsTooSmall) {
     std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
     std::vector<uint8_t> rx_packet = {1};
 
@@ -151,7 +164,7 @@ TEST_F(TemperatureSensorTests, ExceptionThrownWhenPacketIsTooSmall) {
     EXPECT_THROW(device->getHumidity(), std::runtime_error);
 }
 
-TEST_F(TemperatureSensorTests, ExceptionThrownWhenReceivedPacketChecksumIsWrong) {
+TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenReceivedPacketChecksumIsWrong) {
     std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
     std::vector<uint8_t> rx_packet = {'$', 2, 1, 1, 1};
 
@@ -163,7 +176,7 @@ TEST_F(TemperatureSensorTests, ExceptionThrownWhenReceivedPacketChecksumIsWrong)
     EXPECT_THROW(device->getHumidity(), std::runtime_error);
 }
 
-TEST_F(TemperatureSensorTests, AbleToGetTemperatureAsync) {
+TEST_F(TemperatureSensorTestsAfterInit, AbleToGetTemperatureAsync) {
     std::vector<uint8_t> tx_packet = {'$', 1, 25, 25};
     std::vector<uint8_t> rx_packet = {'$', 1, 25, 25};
 
@@ -175,7 +188,7 @@ TEST_F(TemperatureSensorTests, AbleToGetTemperatureAsync) {
     EXPECT_EQ(device->getTemperatureAsynchronously(), 25);
 }
 
-TEST_F(TemperatureSensorTests, ExceptionThrownWhenNotAllPacketWasWrittenToHwWithAsync) {
+TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasWrittenToHwWithAsync) {
     EXPECT_CALL(*hw_interface, write(testing::_))
             .WillOnce(testing::Return(1));
 
