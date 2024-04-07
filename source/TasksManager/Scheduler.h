@@ -15,6 +15,8 @@ class Scheduler {
 public:
     explicit Scheduler(size_t thread_count = 1);
     ~Scheduler();
+    void init();
+    void deinit();
     void enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command);
 private:
     struct Task {
@@ -29,6 +31,7 @@ private:
     bool stop_ {false};
     std::vector<std::thread> worker_threads_;
     void workerFunction();
+    size_t thread_count_{};
 };
 
 #endif //PERIPHERY_MANAGER_SCHEDULER_H

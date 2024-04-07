@@ -7,6 +7,7 @@
 class SignalHandler {
 public:
     static void setupSignalHandling();
+    static void resetSignalHandling();
 
 private:
     static void signalHandler(int);

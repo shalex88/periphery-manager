@@ -11,6 +11,7 @@
 class CommandDispatcher {
 public:
     explicit CommandDispatcher(std::shared_ptr<Scheduler> scheduler);
+    ~CommandDispatcher() = default;
     void registerCommand(const std::string& command_name, std::shared_ptr<CommandInterface> command);
     void dispatchCommand(std::shared_ptr<InputInterface::Requester> requester, const std::string& command_name);
 private:

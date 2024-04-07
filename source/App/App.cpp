@@ -24,6 +24,7 @@ void App::run() {
     uint32_t cores_num = sysconf(_SC_NPROCESSORS_ONLN);
     LOG_INFO("CPU cores number is {}", cores_num);
     auto scheduler = std::make_shared<Scheduler>(cores_num);
+    scheduler->init();
 
     auto dispatcher = std::make_shared<CommandDispatcher>(scheduler);
     dispatcher->registerCommand("stop", std::make_shared<StopCommand>());
@@ -37,4 +38,6 @@ void App::run() {
         //TODO: bit
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
+    LOG_DEBUG("Main thread stopped");
 }

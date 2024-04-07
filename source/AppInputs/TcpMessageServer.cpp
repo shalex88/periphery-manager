@@ -26,8 +26,6 @@ bool TcpMessageServer::init() {
 }
 
 bool TcpMessageServer::deinit() {
-    signalStopServer();
-
     terminate_server_ = true;
 
     stopAllClientThreads();
@@ -50,7 +48,7 @@ void TcpMessageServer::runServer() {
     int opt = 1;
 
     // Creating socket file descriptor
-    if ((server_socket_ = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    if ((server_socket_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) == 0) {
         LOG_ERROR("[TCP Server] Socket creation failed");
         exit(EXIT_FAILURE);
     }
@@ -76,15 +74,23 @@ void TcpMessageServer::runServer() {
     while (!terminate_server_) {
         sockaddr_in client_addr{};
         socklen_t client_addr_len = sizeof(client_addr);
-        int client_socket = accept(server_socket_, (struct sockaddr*) &client_addr, &client_addr_len);
-        if (client_socket < 0) {
-            if (terminate_server_) break; // Accept can fail if server is stopped
-            continue;
-        }
-        LOG_TRACE("[TCP Server] Client {} connected", client_socket);
 
-        std::lock_guard<std::mutex> lock(client_threads_mutex_);
-        client_threads_.emplace_back(&TcpMessageServer::handleClient, this, client_socket);
+        int client_socket = accept(server_socket_, (struct sockaddr*)&client_addr, &client_addr_len);
+        if (client_socket < 0) {
+            // Non-blocking mode or an actual error
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                // No connections are pending, so do something else or just yield the CPU
+                std::this_thread::yield(); // This is one way to avoid busy waiting
+            } else {
+                // Handle other errors that might have occurred
+                LOG_ERROR("[TCP Server] Accept failed with error");
+            }
+        } else {
+            LOG_TRACE("[TCP Server] Client {} connected", client_socket);
+
+            std::lock_guard<std::mutex> lock(client_threads_mutex_);
+            client_threads_.emplace_back(&TcpMessageServer::handleClient, this, client_socket);
+        }
     }
 }
 
@@ -177,29 +183,13 @@ bool TcpMessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> r
     return false;
 }
 
-bool TcpMessageServer::signalStopServer() const {
-    // Connect to the server socket to unblock accept()
-    struct sockaddr_in addr{};
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port_);
-    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    if (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
-        close(sock);
-        return true;
-    }
-
-    return false;
-}
-
 void TcpMessageServer::stopAllClientThreads() {
-    // Assuming you're storing client thread references to join them
-    // Make sure to lock around any shared data access if necessary
-    for (auto& thread : client_threads_) {
-        if (thread.joinable()) {
-            thread.join();
+    if (!client_threads_.empty()) {
+        for (auto& thread: client_threads_) {
+            if (thread.joinable()) {
+                thread.join();
+            }
         }
+        client_threads_.clear();
     }
-    client_threads_.clear();
 }

@@ -32,6 +32,10 @@ void Scheduler::enqueueTask(std::shared_ptr<InputInterface::Requester> requester
 
 // Destructor to clean up when the Scheduler is being destroyed.
 Scheduler::~Scheduler() {
+    deinit();
+}
+
+void Scheduler::deinit() {
     {
         // Locking the queue with a mutex to safely change the stop flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -42,10 +46,11 @@ Scheduler::~Scheduler() {
         thread.join(); // wait for it to finish execution.
     }
 }
-
 // Constructor that initializes the Scheduler with a given number of worker threads.
-Scheduler::Scheduler(size_t thread_count) {
-    for (size_t i = 0; i < thread_count; ++i) {
+Scheduler::Scheduler(size_t thread_count) : thread_count_(thread_count) {}
+
+void Scheduler::init() {
+    for (size_t i = 0; i < thread_count_; ++i) {
         // Create worker threads, each running the workerFunction.
         worker_threads_.emplace_back(&Scheduler::workerFunction, this);
     }
