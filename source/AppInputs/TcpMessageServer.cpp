@@ -3,12 +3,9 @@
 #include <utility>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <fcntl.h>
 #include "Logger/Logger.h"
 #include "TcpMessageServer.h"
-
-//TODO: Make the server mor robust, it fails the tests frequently
 
 TcpMessageServer::TcpMessageServer(int port, std::shared_ptr<CommandDispatcher> command_dispatcher) :
         port_(port), command_dispatcher_(std::move(command_dispatcher)) {

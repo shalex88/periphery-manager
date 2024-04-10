@@ -11,38 +11,40 @@ public:
     }
 };
 
-std::condition_variable cv;
-std::mutex cv_m;
-bool finished = false; // Flag to indicate the thread has finished
+
 
 TEST_F(AppTests, CanRunAndBeStoppedGracefully) {
+    std::condition_variable condition;
+    std::mutex condition_mutex;
+    bool finished = false; // Flag to indicate the thread has finished
+
+    App app;
     std::thread app_thread([&] {
-        App app;
         app.run();
 
         // Signal that the thread has finished
         {
-            std::lock_guard<std::mutex> lk(cv_m);
+            std::lock_guard<std::mutex> lock(condition_mutex);
             finished = true;
         }
-        cv.notify_one();
+        condition.notify_one();
     });
 
     // Simulate stop condition after a delay
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    raise(SIGTERM);
+    app.shutdown();
 
     // Wait for the thread to finish with a timeout
-    std::unique_lock<std::mutex> lk(cv_m);
-    if(!cv.wait_for(lk, std::chrono::seconds(15), []{return finished;})) {
-        // If the wait_for returns false, the timeout was reached without finishing
+    std::unique_lock<std::mutex> lock(condition_mutex);
+    const int64_t timeout{15};
+    if(!condition.wait_for(lock, std::chrono::seconds(timeout), [&finished]{return finished;})) {
         if(app_thread.joinable()) {
-            app_thread.detach(); // Detach the thread to avoid destructor hang.
+            app_thread.detach();
             FAIL() << "App::run() did not stop within the expected time limit";
         }
     } else {
         if(app_thread.joinable()) {
-            app_thread.join(); // Make sure to join if the thread finished before detaching
+            app_thread.join();
         }
         SUCCEED();
     }

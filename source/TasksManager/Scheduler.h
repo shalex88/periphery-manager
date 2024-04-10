@@ -17,7 +17,12 @@ public:
     ~Scheduler();
     void init();
     void deinit();
+    void enqueueTask(const std::shared_ptr<CommandInterface>& command);
     void enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command);
+    size_t getThreadCount();
+    size_t getRunningThreadCount();
+    size_t getTaskQueSize();
+
 private:
     struct Task {
         std::shared_ptr<InputInterface::Requester> requester;

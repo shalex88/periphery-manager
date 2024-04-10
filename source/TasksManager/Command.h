@@ -37,7 +37,6 @@ class StopCommand : public CommandInterface {
 public:
     void execute(std::shared_ptr<InputInterface::Requester> requester) override {
         requester->input_interface_->sendResponse(requester, "Ack");
-        LOG_INFO("Stop");
         if (raise(SIGTERM) != 0) {
             exit(EXIT_FAILURE);
         }

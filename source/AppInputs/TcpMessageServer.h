@@ -22,7 +22,6 @@ private:
     bool getRequest(int client, char* buffer, size_t length);
     void handleClient(int client_socket);
     void stopAllClientThreads();
-    bool signalStopServer() const;
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
     std::atomic<bool> terminate_server_{false};
     std::list<std::thread> client_threads_;
