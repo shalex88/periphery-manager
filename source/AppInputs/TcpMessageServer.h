@@ -19,11 +19,13 @@ public:
 
 private:
     void runServer();
+    std::error_code openSocket();
+    std::error_code acceptConnection();
     bool getRequest(int client, char* buffer, size_t length);
     void handleClient(int client_socket);
     void stopAllClientThreads();
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
-    std::atomic<bool> terminate_server_{false};
+    std::atomic<bool> keep_running_{false};
     std::list<std::thread> client_threads_;
     std::mutex client_threads_mutex_;
     std::thread server_thread_;

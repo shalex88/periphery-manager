@@ -16,14 +16,14 @@ TcpMessageServer::~TcpMessageServer() {
 }
 
 bool TcpMessageServer::init() {
-    terminate_server_ = false;
+    keep_running_ = true;
     server_thread_ = std::thread(&TcpMessageServer::runServer, this);
 
     return true;
 }
 
 bool TcpMessageServer::deinit() {
-    terminate_server_ = true;
+    keep_running_ = false;
 
     stopAllClientThreads();
 
@@ -40,20 +40,57 @@ bool TcpMessageServer::deinit() {
     return true;
 }
 
+std::error_code TcpMessageServer::acceptConnection() {
+    sockaddr_in client_addr{};
+    socklen_t client_addr_len = sizeof(client_addr);
+
+    int client_socket = accept(server_socket_, (struct sockaddr*)&client_addr, &client_addr_len);
+    if (client_socket < 0) {
+        // Non-blocking mode or an actual error
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            // No connections are pending, so do something else or just yield the CPU
+            std::this_thread::yield(); // This is one way to avoid busy waiting
+        } else {
+            return std::error_code(errno, std::generic_category());
+        }
+    } else {
+        LOG_TRACE("[TCP Server] Client {} connected", client_socket);
+        std::lock_guard<std::mutex> lock(client_threads_mutex_);
+        client_threads_.emplace_back(&TcpMessageServer::handleClient, this, client_socket);
+    }
+
+    return {};
+}
+
 void TcpMessageServer::runServer() {
+    auto ec = openSocket();
+    if (ec) {
+        LOG_ERROR("[TCP Server] {}", ec.message());
+    }
+
+    LOG_INFO("[TCP Server] Started");
+
+    while (keep_running_) {
+        ec = acceptConnection();
+        if (ec) {
+            LOG_ERROR("[TCP Server] {}", ec.message());
+        }
+    }
+}
+
+std::error_code TcpMessageServer::openSocket() {
     sockaddr_in server_addr{};
     int opt = 1;
 
     // Creating socket file descriptor
     if ((server_socket_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) == 0) {
-        LOG_ERROR("[TCP Server] Socket creation failed");
-        exit(EXIT_FAILURE);
+        return std::error_code(errno, std::generic_category());
     }
 
     // Forcefully attaching socket to the port
     if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        LOG_ERROR("[TCP Server] Socket attach failed");
-        exit(EXIT_FAILURE);
+        close(server_socket_);
+        std::error_code(errno, std::generic_category());
     }
 
     server_addr.sin_family = AF_INET;
@@ -61,55 +98,34 @@ void TcpMessageServer::runServer() {
     server_addr.sin_port = htons(port_);
 
     if (bind(server_socket_, (struct sockaddr*) &server_addr, sizeof(server_addr))) {
-        LOG_ERROR("[TCP Server] Binding failed");
-        exit(EXIT_FAILURE);
+        close(server_socket_);
+        return std::error_code(errno, std::generic_category());
     }
-    listen(server_socket_, 5);
 
-    LOG_INFO("[TCP Server] Started");
+    listen(server_socket_, 5); //FIXME: remove magic number
 
-    while (!terminate_server_) {
-        sockaddr_in client_addr{};
-        socklen_t client_addr_len = sizeof(client_addr);
-
-        int client_socket = accept(server_socket_, (struct sockaddr*)&client_addr, &client_addr_len);
-        if (client_socket < 0) {
-            // Non-blocking mode or an actual error
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                // No connections are pending, so do something else or just yield the CPU
-                std::this_thread::yield(); // This is one way to avoid busy waiting
-            } else {
-                // Handle other errors that might have occurred
-                LOG_ERROR("[TCP Server] Accept failed with error");
-            }
-        } else {
-            LOG_TRACE("[TCP Server] Client {} connected", client_socket);
-
-            std::lock_guard<std::mutex> lock(client_threads_mutex_);
-            client_threads_.emplace_back(&TcpMessageServer::handleClient, this, client_socket);
-        }
-    }
+    return {};
 }
 
 void TcpMessageServer::handleClient(int client_socket) {
-    // Set client socket to non-blocking mode
-    int flags = fcntl(client_socket, F_GETFL, 0);
-    if (flags == -1) {
-        LOG_ERROR("[TCP Server] Error getting socket flags");
-        return;
-    }
-    if (fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
-        LOG_ERROR("[TCP Server] Error setting socket to non-blocking");
-        return;
-    }
+    while (keep_running_) {
+        // Set client socket to non-blocking mode
+        int flags = fcntl(client_socket, F_GETFL, 0);
+        if (flags == -1) {
+            LOG_ERROR("[TCP Server] Error getting socket flags");
+            return;
+        }
+        if (fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
+            LOG_ERROR("[TCP Server] Error setting socket to non-blocking");
+            return;
+        }
 
-    fd_set read_fds;
-    struct timeval tv{};
-    int retval;
-    ssize_t bytes_read;
-    char buffer[1024]; // Adjust buffer size as needed
+        fd_set read_fds;
+        struct timeval tv{};
+        int retval;
+        ssize_t bytes_read;
+        char buffer[1024]; // Adjust buffer size as needed
 
-    while (!terminate_server_) {
         FD_ZERO(&read_fds);
         FD_SET(client_socket, &read_fds);
 
@@ -129,7 +145,6 @@ void TcpMessageServer::handleClient(int client_socket) {
             if (bytes_read > 0) {
                 getRequest(client_socket, buffer, bytes_read);
             } else if (bytes_read == 0) {
-                LOG_TRACE("[TCP Server] Client {} disconnected", client_socket);
                 break;
             } else {
                 if (errno != EWOULDBLOCK && errno != EAGAIN) {
