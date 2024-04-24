@@ -1,5 +1,5 @@
-#include <utility>
 #include "CommandDispatcher.h"
+#include <utility>
 
 CommandDispatcher::CommandDispatcher(std::shared_ptr<Scheduler> scheduler) : scheduler_(std::move(scheduler)) {}
 

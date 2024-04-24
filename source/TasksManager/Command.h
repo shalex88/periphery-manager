@@ -13,6 +13,15 @@ public:
     virtual ~CommandInterface() = default;
 };
 
+class DummyCommand : public CommandInterface {
+public:
+    void execute(std::shared_ptr<InputInterface::Requester> requester) override {
+        requester->input_interface_->sendResponse(requester, "Ack");
+    }
+
+    ~DummyCommand() override = default;
+};
+
 class GetTempCommand : public CommandInterface {
 public:
     explicit GetTempCommand(std::shared_ptr<TemperatureSensor> sensor) : sensor_(std::move(sensor)) {}

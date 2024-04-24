@@ -67,25 +67,25 @@ TEST_F(CommandDispatcherTests, CanRegisterCommandOnlyOnce) {
     EXPECT_THAT(capture_cout.str(), ::testing::HasSubstr("already registered"));
 }
 
-// TODO: finish
-//TEST_F(CommandDispatcherTests, CanDispatchRegisteredCommand) {
-//    auto command = std::make_shared<CommandMock>();
-//    auto command_name = "command_mock";
-//    command_dispatcher->registerCommand(command_name, command);
-//
-//    EXPECT_CALL(*scheduler, init()).Times(1);
-//    EXPECT_CALL(*scheduler, workerFunction()).Times(1);
-//    scheduler->init();
-//
-////    EXPECT_CALL(*scheduler, enqueueTask(std::shared_ptr<CommandInterface>(command))).Times(1);
-//
-//    std::cout << "Command registered, dispatching..." << std::endl;
-//
-//
-//    EXPECT_CALL(*scheduler, enqueueTask(testing::_)).Times(1);
-//    command_dispatcher->dispatchCommand(command_name);
-//
-//    std::cout << "Dispatched" << std::endl;
-//}
+TEST_F(CommandDispatcherTests, CanDispatchRegisteredCommand) {
+    GTEST_SKIP(); // TODO: wip
+    auto command = std::make_shared<CommandMock>();
+    auto command_name = "command_mock";
+    command_dispatcher->registerCommand(command_name, command);
+
+    EXPECT_CALL(*scheduler, init()).Times(1);
+    EXPECT_CALL(*scheduler, workerFunction()).Times(1);
+    scheduler->init();
+
+//    EXPECT_CALL(*scheduler, enqueueTask(std::shared_ptr<CommandInterface>(command))).Times(1);
+
+    std::cout << "Command registered, dispatching..." << std::endl;
+
+
+    EXPECT_CALL(*scheduler, enqueueTask(testing::_)).Times(1);
+    command_dispatcher->dispatchCommand(command_name);
+
+    std::cout << "Dispatched" << std::endl;
+}
 
 

@@ -11,7 +11,7 @@ public:
         int id_;
         Requester(std::shared_ptr<InputInterface> input_interface, int id) : input_interface_(std::move(input_interface)), id_(id) {}
     };
-    virtual bool sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) = 0;
+    virtual void sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) = 0;
     virtual ~InputInterface() = default;
 };
 

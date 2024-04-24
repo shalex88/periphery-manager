@@ -1,9 +1,10 @@
-#include <csignal>
-#include "AppInputs/TcpMessageServer.h"
-#include "TemperatureSensor/TemperatureSensorProtocol.h"
-#include "PeripheryManager/HwMock.h"
-#include "App/SignalHandler.h"
 #include "App.h"
+#include "AppInputs/MessageServer.h"
+#include "App/SignalHandler.h"
+#include "Network/TcpNetworkManager.h"
+#include "PeripheryManager/HwMock.h"
+#include "TemperatureSensor/TemperatureSensorProtocol.h"
+#include <csignal>
 
 std::atomic<bool> App::keep_running_ = true;
 
@@ -29,9 +30,12 @@ void App::run() {
     auto dispatcher = std::make_shared<CommandDispatcher>(scheduler);
     dispatcher->registerCommand("stop", std::make_shared<StopCommand>());
     dispatcher->registerCommand("temp", std::make_shared<GetTempCommand>(temp_sensor));
+    dispatcher->registerCommand("test", std::make_shared<DummyCommand>());
 
     const int tcp_server_port = 12345;
-    auto tcp_server = std::make_shared<TcpMessageServer>(tcp_server_port, dispatcher);
+    auto network_manager = std::make_shared<TcpNetworkManager>(tcp_server_port);
+
+    auto tcp_server = std::make_shared<MessageServer>(dispatcher, network_manager);
     tcp_server->init();
 
     while(keep_running_) {
