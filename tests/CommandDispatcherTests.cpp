@@ -6,27 +6,22 @@
 
 class CommandMock : public CommandInterface {
 public:
-    MOCK_METHOD(void, execute, (std::shared_ptr<InputInterface::Requester> requester), ());
-};
-
-class SchedulerMock : public Scheduler {
-public:
-    SchedulerMock() : Scheduler() {};
-    MOCK_METHOD(void, workerFunction, (), ()) ;
-    MOCK_METHOD(void, init, (), ());
-    MOCK_METHOD(void, deinit, (), ());
-    MOCK_METHOD(void, enqueueTask, (const std::shared_ptr<CommandInterface>& command), ());
-    MOCK_METHOD(void, enqueueTask, (std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command), ());
+    MOCK_METHOD1(execute, void(std::shared_ptr<InputInterface::Requester>));
 };
 
 class CommandDispatcherTests : public testing::Test {
 public:
     CommandDispatcherTests() :
-        scheduler(std::make_shared<SchedulerMock>()),
-        command_dispatcher(std::make_shared<CommandDispatcher>(scheduler)) {}
+        scheduler(std::make_shared<Scheduler>()),
+        command_dispatcher(std::make_shared<CommandDispatcher>(scheduler)),
+        command(std::make_shared<CommandMock>()) {
+        scheduler->init();
+    }
 
-    std::shared_ptr<SchedulerMock> scheduler;
+    std::shared_ptr<Scheduler> scheduler;
     std::shared_ptr<CommandDispatcher> command_dispatcher;
+    std::shared_ptr<CommandMock> command;
+    std::string command_name = "command_mock";
 };
 
 TEST_F(CommandDispatcherTests, CanBeCreated) {
@@ -39,7 +34,8 @@ TEST_F(CommandDispatcherTests, PrintsUnknownCommandForUnregisteredCommand) {
     std::ostringstream capture_cout;
     std::cout.rdbuf(capture_cout.rdbuf());
 
-    command_dispatcher->dispatchCommand("command");
+    EXPECT_CALL(*command, execute(testing::_)).Times(0);
+    command_dispatcher->dispatchCommand(command_name);
 
 // Restore the original cout buffer
     std::cout.rdbuf(original_cout_buffer);
@@ -49,9 +45,6 @@ TEST_F(CommandDispatcherTests, PrintsUnknownCommandForUnregisteredCommand) {
 }
 
 TEST_F(CommandDispatcherTests, CanRegisterCommandOnlyOnce) {
-    auto command = std::make_shared<CommandMock>();
-    auto command_name = "command_mock";
-
 // Save the original cout buffer and redirect cout to a custom string stream
     std::streambuf *original_cout_buffer=std::cout.rdbuf();
     std::ostringstream capture_cout;
@@ -68,24 +61,8 @@ TEST_F(CommandDispatcherTests, CanRegisterCommandOnlyOnce) {
 }
 
 TEST_F(CommandDispatcherTests, CanDispatchRegisteredCommand) {
-    GTEST_SKIP(); // TODO: wip
-    auto command = std::make_shared<CommandMock>();
-    auto command_name = "command_mock";
     command_dispatcher->registerCommand(command_name, command);
 
-    EXPECT_CALL(*scheduler, init()).Times(1);
-    EXPECT_CALL(*scheduler, workerFunction()).Times(1);
-    scheduler->init();
-
-//    EXPECT_CALL(*scheduler, enqueueTask(std::shared_ptr<CommandInterface>(command))).Times(1);
-
-    std::cout << "Command registered, dispatching..." << std::endl;
-
-
-    EXPECT_CALL(*scheduler, enqueueTask(testing::_)).Times(1);
+    EXPECT_CALL(*command, execute(testing::_)).Times(1);
     command_dispatcher->dispatchCommand(command_name);
-
-    std::cout << "Dispatched" << std::endl;
 }
-
-

@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include <optional>
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 
@@ -30,6 +29,11 @@ public:
     std::shared_ptr<HwInterfaceMock> hw_interface;
     std::shared_ptr<TemperatureSensorProtocol> protocol_interface;
     std::shared_ptr<TemperatureSensorMock> device;
+
+    void TearDown() override {
+        EXPECT_CALL(*hw_interface, deinit())
+                .WillRepeatedly(testing::Return(true));
+    }
 };
 
 class TemperatureSensorTestsAfterInit : public TemperatureSensorTestsBeforeInit {
@@ -39,6 +43,13 @@ class TemperatureSensorTestsAfterInit : public TemperatureSensorTestsBeforeInit 
         EXPECT_CALL(*hw_interface, init())
                 .WillRepeatedly(testing::Return(true));
         device->init();
+    }
+    
+    void TearDown() override {
+        EXPECT_CALL(*device, disable())
+                .WillRepeatedly(testing::Return(true));
+        EXPECT_CALL(*hw_interface, deinit())
+                .WillRepeatedly(testing::Return(true));
     }
 };
 
@@ -99,8 +110,8 @@ TEST_F(TemperatureSensorTestsAfterInit, DeinitFailsIfPowerOffFails) {
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, AbleToGetStatus) {
-    std::vector<uint8_t> tx_packet = {'$', 1, 1, 1};
-    std::vector<uint8_t> rx_packet = {'$', 1, 1, 1};
+    std::vector<uint8_t> tx_packet {'$', 1, 1, 1};
+    std::vector<uint8_t> rx_packet {'$', 1, 1, 1};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
         .WillOnce(testing::Return(tx_packet.size()));
@@ -111,8 +122,8 @@ TEST_F(TemperatureSensorTestsAfterInit, AbleToGetStatus) {
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, AbleToGetTemperature) {
-    std::vector<uint8_t> tx_packet = {'$', 1, 25, 25};
-    std::vector<uint8_t> rx_packet = {'$', 1, 25, 25};
+    std::vector<uint8_t> tx_packet {'$', 1, 25, 25};
+    std::vector<uint8_t> rx_packet {'$', 1, 25, 25};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
             .WillOnce(testing::Return(tx_packet.size()));
@@ -123,8 +134,8 @@ TEST_F(TemperatureSensorTestsAfterInit, AbleToGetTemperature) {
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, AbleToGet2bytesHumidity) {
-    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
-    std::vector<uint8_t> rx_packet = {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> tx_packet {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet {'$', 2, 1, 1, 2};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
             .WillOnce(testing::Return(tx_packet.size()));
@@ -142,8 +153,8 @@ TEST_F(TemperatureSensorTestsAfterInit, NothingReturnsWhenNotAllPacketWasWritten
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasReadFromHw) {
-    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
-    std::vector<uint8_t> rx_packet = {'$', 2, 1, 1};
+    std::vector<uint8_t> tx_packet {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet {'$', 2, 1, 1};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
             .WillOnce(testing::Return(tx_packet.size()));
@@ -154,8 +165,8 @@ TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenNotAllPacketWasReadFr
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenPacketIsTooSmall) {
-    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
-    std::vector<uint8_t> rx_packet = {1};
+    std::vector<uint8_t> tx_packet {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet {1};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
             .WillOnce(testing::Return(tx_packet.size()));
@@ -166,8 +177,8 @@ TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenPacketIsTooSmall) {
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenReceivedPacketChecksumIsWrong) {
-    std::vector<uint8_t> tx_packet = {'$', 2, 1, 1, 2};
-    std::vector<uint8_t> rx_packet = {'$', 2, 1, 1, 1};
+    std::vector<uint8_t> tx_packet {'$', 2, 1, 1, 2};
+    std::vector<uint8_t> rx_packet {'$', 2, 1, 1, 1};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
             .WillOnce(testing::Return(tx_packet.size()));
@@ -178,8 +189,8 @@ TEST_F(TemperatureSensorTestsAfterInit, ExceptionThrownWhenReceivedPacketChecksu
 }
 
 TEST_F(TemperatureSensorTestsAfterInit, AbleToGetTemperatureAsync) {
-    std::vector<uint8_t> tx_packet = {'$', 1, 25, 25};
-    std::vector<uint8_t> rx_packet = {'$', 1, 25, 25};
+    std::vector<uint8_t> tx_packet {'$', 1, 25, 25};
+    std::vector<uint8_t> rx_packet {'$', 1, 25, 25};
 
     EXPECT_CALL(*hw_interface, write(tx_packet))
             .WillOnce(testing::Return(tx_packet.size()));

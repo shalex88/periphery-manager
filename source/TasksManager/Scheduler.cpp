@@ -1,5 +1,5 @@
+#include "Scheduler.h"
 #include <utility>
-#include "TasksManager/Scheduler.h"
 
 Scheduler::Scheduler(size_t thread_count) : thread_count_(thread_count) {}
 
@@ -20,7 +20,7 @@ void Scheduler::deinit() {
         std::unique_lock<std::mutex> lock(queue_mutex_);
         stop_ = true; // Set the stop flag to true.
     }
-    condition_.notify_all(); // Notify all worker threads to wake up, potentially to stop.
+    task_available_condition_.notify_all(); // Notify all worker threads to wake up, potentially to stop.
     for (auto& thread: worker_threads_) { // For each worker thread,
         if(thread.joinable()) {
             thread.join(); // wait for it to finish execution.
@@ -31,52 +31,42 @@ void Scheduler::deinit() {
 }
 
 void Scheduler::workerFunction() {
-    while (true) { // Infinite loop to keep threads alive and fetching tasks.
-        std::shared_ptr<Task> task; // Pointer to the next task to be executed.
+    while (true) {
+        std::shared_ptr<Task> task;
+
         {
-            // Locking the queue with a mutex to ensure thread-safe access.
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            // Wait on a condition variable until there is a task available or the scheduler is stopped.
-            condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
+            task_available_condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
             if (stop_ && tasks_.empty()) {
                 return;
             }
-            task = tasks_.front(); // Get the next task from the queue.
-            tasks_.pop(); // Remove the task from the queue.
-        } // The lock is released here as the scope ends.
+            task = tasks_.front();
+            tasks_.pop();
+        }
 
-        task->command->execute(task->requester); // Execute the fetched task.
+        task->command->execute(task->requester);
     }
 }
 
 void Scheduler::enqueueTask(const std::shared_ptr<CommandInterface>& command) {
     {
-        // Locking the queue with a mutex to ensure thread-safe access.
         std::unique_lock<std::mutex> lock(queue_mutex_);
         auto task = std::make_shared<Task>(nullptr, command);
-        tasks_.push(task); // Add the task to the queue.
+        tasks_.push(task);
     }
-    condition_.notify_one(); // Notify one worker thread that a task is available.
+    task_available_condition_.notify_one();
 }
 
 void Scheduler::enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command) {
     {
-        // Locking the queue with a mutex to ensure thread-safe access.
         std::unique_lock<std::mutex> lock(queue_mutex_);
         auto task = std::make_shared<Task>(std::move(requester), command);
-        tasks_.push(task); // Add the task to the queue.
+        tasks_.push(task);
     }
-    condition_.notify_one(); // Notify one worker thread that a task is available.
+    task_available_condition_.notify_one();
 }
 
-size_t Scheduler::getThreadCount() {
-    return thread_count_;
-}
-
-size_t Scheduler::getRunningThreadCount() {
+size_t Scheduler::getRunningThreadCount() const {
     return worker_threads_.size();
 }
 
-size_t Scheduler::getTaskQueSize() {
-    return tasks_.size();
-}

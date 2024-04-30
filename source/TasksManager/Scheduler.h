@@ -19,9 +19,7 @@ public:
     void deinit();
     void enqueueTask(const std::shared_ptr<CommandInterface>& command);
     void enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command);
-    size_t getThreadCount();
-    size_t getRunningThreadCount();
-    size_t getTaskQueSize();
+    size_t getRunningThreadCount() const;
 
 private:
     struct Task {
@@ -32,7 +30,7 @@ private:
     };
     std::queue<std::shared_ptr<Task>> tasks_;
     std::mutex queue_mutex_;
-    std::condition_variable condition_;
+    std::condition_variable task_available_condition_;
     bool stop_ {false};
     std::vector<std::thread> worker_threads_;
     void workerFunction();
