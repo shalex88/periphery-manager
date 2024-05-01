@@ -1,17 +1,15 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
+#include "App/App.h"
 #include <thread>
 #include <future>
-#include "App/App.h"
 
 class AppTests : public testing::Test {
 public:
     void SetUp() override {
     }
 };
-
-
 
 TEST_F(AppTests, CanRunAndBeStoppedGracefully) {
     std::condition_variable condition;

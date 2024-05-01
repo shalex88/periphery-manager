@@ -1,13 +1,14 @@
+#include "Ethernet.h"
 #include <vector>
 #include <string>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "PeripheryManager/TcpClient.h"
 #include "Logger/Logger.h"
 
-TcpClient::TcpClient(const std::string &server_ip, int server_port)
-        : client_socket_(-1), server_address_{} {
+const int MaxBufferSize {1024};
+
+Ethernet::Ethernet(const std::string &server_ip, int server_port) {
     LOG_DEBUG("Creating a TCP client");
     client_socket_ = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -21,17 +22,18 @@ TcpClient::TcpClient(const std::string &server_ip, int server_port)
     }
 }
 
-std::vector<uint8_t> TcpClient::read() {
-    uint8_t buffer[256] {};
-    ssize_t bytes_received = recv(client_socket_, buffer, sizeof(buffer), 0);
+std::vector<uint8_t> Ethernet::read() {
+    std::vector<uint8_t> buffer(MaxBufferSize);
+    const ssize_t bytes_received = recv(client_socket_, buffer.data(), buffer.size(), 0);
     if (bytes_received == -1) {
         return {};
     }
 
-    return {buffer, buffer + bytes_received};
+    buffer.resize(bytes_received);
+    return buffer;
 }
 
-uint8_t TcpClient::write(const std::vector<uint8_t> &tx_data) {
+size_t Ethernet::write(const std::vector<uint8_t> &tx_data) {
     if (send(client_socket_, tx_data.data(), tx_data.size(), 0) != -1) {
         return tx_data.size();
     }
@@ -39,13 +41,13 @@ uint8_t TcpClient::write(const std::vector<uint8_t> &tx_data) {
     return 0;
 }
 
-bool TcpClient::init() {
+bool Ethernet::init() {
     LOG_DEBUG("Connecting to server...");
 
-    return connect(client_socket_, (struct sockaddr*) &server_address_, sizeof(server_address_)) != -1;
+    return connect(client_socket_, reinterpret_cast<struct sockaddr*>(&server_address_), sizeof(server_address_)) != -1;
 }
 
-bool TcpClient::deinit() {
+bool Ethernet::deinit() {
     LOG_DEBUG("Disconnecting from server");
 
     return close(client_socket_) != -1;

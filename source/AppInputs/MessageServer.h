@@ -20,7 +20,8 @@ public:
 
 private:
     void runServer();
-    bool parseMessage(int client, const char* buffer, size_t length);
+    bool parseMessage(const int client, const std::vector<char>& buffer);
+    std::string printMessage(const int client, const std::vector<char>& buffer) const;
     void handleClient(int client_socket);
     void stopAllClientThreads();
     std::shared_ptr<CommandDispatcher> command_dispatcher_;

@@ -1,23 +1,23 @@
+#include "AbstractDevice.h"
 #include <thread>
 #include <iostream>
 #include <optional>
 #include "Logger/Logger.h"
-#include "PeripheryManager/AbstractDevice.h"
 
-std::vector<uint8_t> AbstractDevice::readData() {
+std::vector<uint8_t> AbstractDevice::readData() const {
     auto rx_packet = communication_interface_->read();
     auto data = protocol_interface_->unpackData(rx_packet);
 
     return data;
 }
 
-bool AbstractDevice::writeData(const std::vector<uint8_t> &tx_data) {
+bool AbstractDevice::writeData(const std::vector<uint8_t> &tx_data) const {
     auto tx_packet = protocol_interface_->packData(tx_data);
 
     return tx_packet.size() == communication_interface_->write(tx_packet);
 }
 
-std::optional<std::vector<uint8_t>> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) {
+std::optional<std::vector<uint8_t>> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) const {
     std::vector<uint8_t> respose_rx;
 
     if (!isEnabled()) {
@@ -28,21 +28,21 @@ std::optional<std::vector<uint8_t>> AbstractDevice::getDataSyncronously(const st
         respose_rx = readData();
         return respose_rx;
     } else {
-        LOG_ERROR("{}", "Not all data was written");
+        LOG_ERROR("Not all data was written");
         return std::nullopt;
     }
 }
 
 bool AbstractDevice::isEnabled() const {
     if(!is_enabled_) {
-        LOG_ERROR("{}", "Device is disabled");
+        LOG_ERROR("Device is disabled");
         return false;
     }
 
     return true;
 }
 
-std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const std::vector<uint8_t> &tx_data) {
+std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const std::vector<uint8_t> &tx_data) const {
     std::promise<std::vector<uint8_t>> prom;
     auto future_result = prom.get_future();
 
@@ -51,7 +51,7 @@ std::future<std::vector<uint8_t>> AbstractDevice::getDataAsynchronously(const st
         std::thread([prom = std::move(prom), this]() mutable {
             // Wait until the data is ready (replace with your actual logic)
             std::this_thread::sleep_for(std::chrono::seconds(1)); //FIXME: use a mechanism to check if data received
-            std::vector<uint8_t> rx_data = readData();
+            const std::vector<uint8_t> rx_data = readData();
             prom.set_value(rx_data);
         }).detach();
     } else {

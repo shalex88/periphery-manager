@@ -32,11 +32,11 @@ private:
 
 #define SET_LOG_LEVEL(level) Logger::getInstance().setLogLevel(level)
 
-#define LOG_TRACE(...) Logger::getInstance().log(LoggerInterface::LogLevel::kTrace, __VA_ARGS__)
-#define LOG_DEBUG(...) Logger::getInstance().log(LoggerInterface::LogLevel::kDebug, __VA_ARGS__)
-#define LOG_INFO(...) Logger::getInstance().log(LoggerInterface::LogLevel::kInfo, __VA_ARGS__)
-#define LOG_WARN(...) Logger::getInstance().log(LoggerInterface::LogLevel::kWarn, __VA_ARGS__)
-#define LOG_ERROR(...) Logger::getInstance().log(LoggerInterface::LogLevel::kError, __VA_ARGS__)
-#define LOG_CRITICAL(...) Logger::getInstance().log(LoggerInterface::LogLevel::kCritical, __VA_ARGS__)
+#define LOG_TRACE(...) Logger::getInstance().log(LoggerInterface::LogLevel::Trace, __VA_ARGS__)
+#define LOG_DEBUG(...) Logger::getInstance().log(LoggerInterface::LogLevel::Debug, __VA_ARGS__)
+#define LOG_INFO(...) Logger::getInstance().log(LoggerInterface::LogLevel::Info, __VA_ARGS__)
+#define LOG_WARN(...) Logger::getInstance().log(LoggerInterface::LogLevel::Warn, __VA_ARGS__)
+#define LOG_ERROR(...) Logger::getInstance().log(LoggerInterface::LogLevel::Error, __VA_ARGS__)
+#define LOG_CRITICAL(...) Logger::getInstance().log(LoggerInterface::LogLevel::Critical, __VA_ARGS__)
 
 #endif //PERIPHERY_MANAGER_LOGGER_H

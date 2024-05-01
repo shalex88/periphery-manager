@@ -9,8 +9,8 @@ public:
     virtual ~NetworkInterface() = default;
     virtual std::error_code init() = 0;
     virtual int acceptConnection() = 0;
-    virtual std::pair<char*, ssize_t> readData(int client_socket) = 0;
-    virtual std::error_code sendData(int client_socket, const void* data, size_t data_size) = 0;
+    virtual std::pair<std::vector<char>, bool> readData(int client_socket) = 0;
+    virtual std::error_code sendData(int client_socket, const std::vector<char> data) = 0;
     virtual void closeConnection() = 0;
     virtual int getServerSocket() = 0;
 };

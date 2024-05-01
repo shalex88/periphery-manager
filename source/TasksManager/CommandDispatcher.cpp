@@ -19,7 +19,7 @@ void CommandDispatcher::dispatchCommand(std::shared_ptr<InputInterface::Requeste
         if (it != command_map_.end()) {
             scheduler_->enqueueTask(std::move(requester), it->second);
         } else {
-            requester->input_interface_->sendResponse(requester, "Nack");
+            requester->source->sendResponse(requester, "Nack");
             LOG_ERROR("Unknown command");
         }
     }

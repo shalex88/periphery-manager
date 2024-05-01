@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "TasksManager/Scheduler.h"
 #include "TasksManager/CommandDispatcher.h"
+#include "TasksManager/Scheduler.h"
 
 class CommandMock : public CommandInterface {
 public:

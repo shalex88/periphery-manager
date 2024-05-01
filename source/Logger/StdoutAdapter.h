@@ -9,7 +9,7 @@ public:
     StdoutAdapter() = default;
 
     void setLogLevel(LogLevel level) override {
-        if (level <= LoggerInterface::LogLevel::kCritical) {
+        if (level <= LoggerInterface::LogLevel::Critical) {
             log_level_ = level;
         } else {
             throw std::invalid_argument("Invalid log severity");
@@ -17,26 +17,26 @@ public:
     }
 
 protected:
-    void logImpl(LogLevel level, const std::string &msg) override {
+    void logImpl(LogLevel level, const std::string& msg) override {
         if (level >= log_level_) {
             std::cout << "[" << toSpdLogLevel(level) << "] " << msg << std::endl;
         }
     }
 
 private:
-    LogLevel log_level_ = LoggerInterface::LogLevel::kInfo;
+    LogLevel log_level_ = LoggerInterface::LogLevel::Info;
 
     std::string toSpdLogLevel(LogLevel level) {
         switch (level) {
-            case LogLevel::kTrace:
+            case LogLevel::Trace:
                 return "trace";
-            case LogLevel::kDebug:
+            case LogLevel::Debug:
                 return "debug";
-            case LogLevel::kInfo:
+            case LogLevel::Info:
                 return "info";
-            case LogLevel::kWarn:
+            case LogLevel::Warn:
                 return "warning";
-            case LogLevel::kError:
+            case LogLevel::Error:
                 return "error";
             case LogLevel::kCritical:
                 return "critical";

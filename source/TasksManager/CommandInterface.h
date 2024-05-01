@@ -16,7 +16,7 @@ class CommandFake : public CommandInterface {
 public:
     ~CommandFake() override = default;
     void execute(std::shared_ptr<InputInterface::Requester> requester) override {
-        requester->input_interface_->sendResponse(requester, "Ack");
+        requester->source->sendResponse(requester, "Ack");
     }
 };
 

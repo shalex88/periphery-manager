@@ -4,10 +4,10 @@
 #include "TemperatureSensor/TemperatureSensor.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 
-class HwInterfaceMock : public HwInterface {
+class HwMock : public HwInterface {
 public:
     MOCK_METHOD0(read, std::vector<uint8_t>());
-    MOCK_METHOD1(write, uint8_t(const std::vector<uint8_t>&));
+    MOCK_METHOD1(write, size_t(const std::vector<uint8_t>&));
     MOCK_METHOD0(init, bool());
     MOCK_METHOD0(deinit, bool());
 };
@@ -22,11 +22,11 @@ public:
 class TemperatureSensorTestsBeforeInit : public testing::Test {
 public:
     TemperatureSensorTestsBeforeInit() :
-            hw_interface(std::make_shared<HwInterfaceMock>()),
+            hw_interface(std::make_shared<HwMock>()),
             protocol_interface(std::make_shared<TemperatureSensorProtocol>()),
             device(std::make_shared<TemperatureSensorMock>(hw_interface, protocol_interface)) {}
 
-    std::shared_ptr<HwInterfaceMock> hw_interface;
+    std::shared_ptr<HwMock> hw_interface;
     std::shared_ptr<TemperatureSensorProtocol> protocol_interface;
     std::shared_ptr<TemperatureSensorMock> device;
 

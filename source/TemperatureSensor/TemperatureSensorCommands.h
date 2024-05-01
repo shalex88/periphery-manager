@@ -7,7 +7,7 @@
 class GetTempCommand : public CommandInterface {
 public:
     explicit GetTempCommand(std::shared_ptr<TemperatureSensor> sensor) : sensor_(std::move(sensor)) {}
-    void execute(std::shared_ptr<InputInterface::Requester> requester) override ;
+    void execute(std::shared_ptr<InputInterface::Requester> requester) override;
     ~GetTempCommand() override = default;
 
 private:

@@ -3,16 +3,6 @@
 /* Add your project include files here */
 #include "Logger/Logger.h"
 
-// TEST PLAN
-// + Able to log
-// + Not able to log messages with lower seeverity
-// + Can change severity on runtime
-// + Can log trace
-// + Can log debug
-// + Can log warning
-// + Can log error
-// + Can log critical
-
 TEST(LoggerTests, AbleToOutput){
 //    Save the original cout buffer and redirect cout to a custom string stream
     std::streambuf *original_cout_buffer=std::cout.rdbuf();
@@ -55,7 +45,7 @@ TEST(LoggerTests, AbleToChangeSeverityOnRuntime){
 
 //    Call the function you want to test
     std::string expected_output="Hello World!";
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kDebug);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Debug);
     LOG_DEBUG("{}", expected_output);
 
 //    Restore the original cout buffer
@@ -72,7 +62,7 @@ TEST(LoggerTests, AbleToLogTrace){
     std::cout.rdbuf(capture_cout.rdbuf());
 
 //    Call the function you want to test
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kTrace);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Trace);
     std::string expected_output="Hello World!";
     LOG_TRACE("{}", expected_output);
 
@@ -90,7 +80,7 @@ TEST(LoggerTests, AbleToLogDebug){
     std::cout.rdbuf(capture_cout.rdbuf());
 
 //    Call the function you want to test
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kDebug);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Debug);
     std::string expected_output="Hello World!";
     LOG_DEBUG("{}", expected_output);
 
@@ -108,7 +98,7 @@ TEST(LoggerTests, AbleToLogInfo){
     std::cout.rdbuf(capture_cout.rdbuf());
 
 //    Call the function you want to test
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kInfo);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Info);
     std::string expected_output="Hello World!";
     LOG_INFO("{}", expected_output);
 
@@ -126,7 +116,7 @@ TEST(LoggerTests, AbleToLogWarning){
     std::cout.rdbuf(capture_cout.rdbuf());
 
 //    Call the function you want to test
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kWarn);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Warn);
     std::string expected_output="Hello World!";
     LOG_WARN("{}", expected_output);
 
@@ -144,7 +134,7 @@ TEST(LoggerTests, AbleToLogError){
     std::cout.rdbuf(capture_cout.rdbuf());
 
 //    Call the function you want to test
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kError);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Error);
     std::string expected_output="Hello World!";
     LOG_ERROR("{}", expected_output);
 
@@ -162,7 +152,7 @@ TEST(LoggerTests, AbleToLogCritical){
     std::cout.rdbuf(capture_cout.rdbuf());
 
 //    Call the function you want to test
-    SET_LOG_LEVEL(LoggerInterface::LogLevel::kCritical);
+    SET_LOG_LEVEL(LoggerInterface::LogLevel::Critical);
     std::string expected_output="Hello World!";
     LOG_CRITICAL("{}", expected_output);
 

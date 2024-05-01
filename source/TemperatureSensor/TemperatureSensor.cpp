@@ -1,18 +1,18 @@
+#include "TemperatureSensor.h"
 #include <unordered_map>
 #include <optional>
 #include "Logger/Logger.h"
-#include "TemperatureSensor/TemperatureSensor.h"
 
-enum class Command {
-    kGetStatus,
-    kGetTemperature,
-    kGetHumidity
+enum class DeviceCommand {
+    GetStatus,
+    GetTemperature,
+    GetHumidity
 };
 
-std::unordered_map<Command, std::vector<uint8_t>> command = {
-    {Command::kGetStatus,      {1}},
-    {Command::kGetTemperature, {25}},
-    {Command::kGetHumidity,    {1, 1}}
+std::unordered_map<DeviceCommand, std::vector<uint8_t>> DeviceCommandsToBytes = {
+    {DeviceCommand::GetStatus, {1}},
+    {DeviceCommand::GetTemperature, {25}},
+    {DeviceCommand::GetHumidity, {1, 1}}
 };
 
 TemperatureSensor::~TemperatureSensor() {
@@ -31,45 +31,43 @@ bool TemperatureSensor::disable() {
     return true;
 }
 
-std::optional<uint8_t> TemperatureSensor::getStatus() {
-    auto status = getDataSyncronously(command[Command::kGetStatus]);
+std::optional<uint8_t> TemperatureSensor::getStatus() const {
+    auto status = getDataSyncronously(DeviceCommandsToBytes[DeviceCommand::GetStatus]);
 
-    if (status.has_value()) {
-        return status.value().at(0);
-    } else {
+    if (!status.has_value()) {
         return std::nullopt;
     }
+
+    return status.value().at(0);
 }
 
-std::optional<uint8_t> TemperatureSensor::getTemperature() {
-    auto temperature = getDataSyncronously(command[Command::kGetTemperature]);
+std::optional<uint8_t> TemperatureSensor::getTemperature() const {
+    auto temperature = getDataSyncronously(DeviceCommandsToBytes[DeviceCommand::GetTemperature]);
 
-    if (temperature.has_value()) {
-        return temperature.value().at(0);
-    } else {
+    if (!temperature.has_value()) {
         return std::nullopt;
     }
+
+    return temperature.value().at(0);
 }
 
-std::optional<uint16_t> TemperatureSensor::getHumidity() {
-    auto humidity = getDataSyncronously(command[Command::kGetHumidity]);
+std::optional<uint16_t> TemperatureSensor::getHumidity() const {
+    auto humidity = getDataSyncronously(DeviceCommandsToBytes[DeviceCommand::GetHumidity]);
 
-    if (humidity.has_value()) {
-        return (static_cast<uint16_t>(humidity.value()[0]) << 8) | static_cast<uint16_t>(humidity.value()[1]);
-    } else {
+    if (!humidity.has_value()) {
         return std::nullopt;
     }
+
+    return (static_cast<uint16_t>(humidity.value()[0]) << 8) | static_cast<uint16_t>(humidity.value()[1]);
 }
 
-uint8_t TemperatureSensor::getTemperatureAsynchronously() {
+uint8_t TemperatureSensor::getTemperatureAsynchronously() const {
     std::promise<uint8_t> prom;
     auto future_result = prom.get_future();
 
-    auto rx_data_future = getDataAsynchronously(command[Command::kGetTemperature]);
-
+    auto rx_data_future = getDataAsynchronously(DeviceCommandsToBytes[DeviceCommand::GetTemperature]);
     auto temperature = rx_data_future.get().at(0);
-
     prom.set_value(temperature);
 
-    return temperature;
+    return future_result.get();
 }

@@ -8,7 +8,7 @@ class HwInterface {
 public:
     virtual ~HwInterface() = default;
     virtual std::vector<uint8_t> read() = 0;
-    virtual uint8_t write(const std::vector<uint8_t>& tx_data) = 0;
+    virtual size_t write(const std::vector<uint8_t>& tx_data) = 0;
     virtual bool init() = 0;
     virtual bool deinit() = 0;
 };
@@ -21,7 +21,7 @@ public:
         return last_tx_data_;
     }
 
-    uint8_t write(const std::vector<uint8_t>& tx_data) override {
+    size_t write(const std::vector<uint8_t>& tx_data) override {
         last_tx_data_ = tx_data;
 
         return tx_data.size();

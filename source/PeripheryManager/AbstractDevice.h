@@ -14,23 +14,23 @@ protected:
                             std::shared_ptr<ProtocolInterface> protocol_interface) :
                                communication_interface_(std::move(communication_interface)),
                                protocol_interface_(std::move(protocol_interface)) {};
-    virtual ~AbstractDevice() = default;
-    std::optional<std::vector<uint8_t>> getDataSyncronously(const std::vector<uint8_t> &tx_data);
-    std::future<std::vector<uint8_t>> getDataAsynchronously(const std::vector<uint8_t> &tx_data);
+    std::optional<std::vector<uint8_t>> getDataSyncronously(const std::vector<uint8_t> &tx_data) const;
+    std::future<std::vector<uint8_t>> getDataAsynchronously(const std::vector<uint8_t> &tx_data) const;
 
 public:
     bool init();
     bool deinit();
+    virtual ~AbstractDevice() = default;
 
 private:
-    std::vector<uint8_t> readData();
-    bool writeData(const std::vector<uint8_t> &tx_data);
+    std::vector<uint8_t> readData() const;
+    bool writeData(const std::vector<uint8_t> &tx_data) const;
     bool isEnabled() const;
-    virtual bool enable() = 0;
-    virtual bool disable() = 0;
     std::shared_ptr<HwInterface> communication_interface_;
     std::shared_ptr<ProtocolInterface> protocol_interface_;
     bool is_enabled_{false};
+    virtual bool enable() = 0 ;
+    virtual bool disable() = 0;
 };
 
 #endif //PERIPHERY_MANAGER_ABSTRACTDEVICE_H

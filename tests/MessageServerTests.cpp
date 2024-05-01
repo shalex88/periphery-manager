@@ -4,11 +4,11 @@
 #include "AppInputs/MessageServer.h"
 #include "Network/TcpNetworkManager.h"
 #include "PeripheryManager/HwInterface.h"
-#include "PeripheryManager/TcpClient.h"
+#include "PeripheryManager/Ethernet.h"
 
-class TcpServerTests : public testing::Test {
+class MessageServerTests : public testing::Test {
 public:
-    std::shared_ptr<TcpClient> tcp_client;
+    std::shared_ptr<Ethernet> tcp_client;
     std::shared_ptr<MessageServer> tcp_server;
     std::shared_ptr<Scheduler> scheduler;
     std::shared_ptr<TcpNetworkManager> network_manager;
@@ -21,7 +21,7 @@ public:
         dispatcher = std::make_shared<CommandDispatcher>(scheduler);
         network_manager = std::make_shared<TcpNetworkManager>(port);
         tcp_server = std::make_shared<MessageServer>(dispatcher, network_manager);
-        tcp_client = std::make_shared<TcpClient>("127.0.0.1", port);
+        tcp_client = std::make_shared<Ethernet>("127.0.0.1", port);
     }
 
     void TearDown() override {
@@ -30,12 +30,12 @@ public:
     }
 };
 
-TEST_F(TcpServerTests, ServerCanStartAndStop) {
+TEST_F(MessageServerTests, ServerCanStartAndStop) {
     EXPECT_EQ(tcp_server->init(), true);
     EXPECT_EQ(tcp_server->deinit(), true);
 }
 
-TEST_F(TcpServerTests, ServerCanBeConnectedTo) {
+TEST_F(MessageServerTests, ServerCanBeConnectedTo) {
     tcp_server->init();
 
     // Wait for the server to be ready
@@ -44,7 +44,7 @@ TEST_F(TcpServerTests, ServerCanBeConnectedTo) {
     EXPECT_EQ(tcp_client->init(), true);
 }
 
-TEST_F(TcpServerTests, ServerCanRecieveMultipleClients) {
+TEST_F(MessageServerTests, ServerCanRecieveMultipleClients) {
     tcp_server->init();
 
     // Wait for the server to be ready
@@ -52,11 +52,11 @@ TEST_F(TcpServerTests, ServerCanRecieveMultipleClients) {
 
     EXPECT_EQ(tcp_client->init(), true);
 
-    auto second_tcp_client = std::make_shared<TcpClient>("127.0.0.1", port);
+    auto second_tcp_client = std::make_shared<Ethernet>("127.0.0.1", port);
     EXPECT_EQ(second_tcp_client->init(), true);
 }
 
-TEST_F(TcpServerTests, ServerCanBeWriteToAndReadFrom) {
+TEST_F(MessageServerTests, ServerCanBeWriteToAndReadFrom) {
     tcp_server->init();
 
     // Wait for the server to be ready
@@ -72,8 +72,7 @@ TEST_F(TcpServerTests, ServerCanBeWriteToAndReadFrom) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-
-TEST_F(TcpServerTests, ServerReturnsNackForUnregisteredCommands) {
+TEST_F(MessageServerTests, ServerReturnsNackForUnregisteredCommands) {
     tcp_server->init();
 
 //    // Wait for the server to be ready
@@ -90,7 +89,7 @@ TEST_F(TcpServerTests, ServerReturnsNackForUnregisteredCommands) {
     EXPECT_EQ(tcp_client->read(), expected);
 }
 
-TEST_F(TcpServerTests, ServerReturnsAckForRegisteredCommands) {
+TEST_F(MessageServerTests, ServerReturnsAckForRegisteredCommands) {
     dispatcher->registerCommand("test", std::make_shared<CommandFake>());
     tcp_server->init();
 

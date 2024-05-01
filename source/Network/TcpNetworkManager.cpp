@@ -1,10 +1,12 @@
-#include "Network/TcpNetworkManager.h"
+#include "TcpNetworkManager.h"
 #include "Logger/Logger.h"
 #include <csignal>
-#include <cstring>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <thread>
+
+const int MaxBufferSize {1024};
+const int MaxClientsNum {5};
 
 TcpNetworkManager::TcpNetworkManager(int port) :
         port_(port) {}
@@ -33,7 +35,7 @@ std::error_code TcpNetworkManager::init() {
         return {errno, std::generic_category()};
     }
 
-    listen(server_socket_, max_clients_num_);
+    listen(server_socket_, MaxClientsNum);
 
     return {};
 }
@@ -42,7 +44,8 @@ int TcpNetworkManager::acceptConnection() {
     sockaddr_in client_addr{};
     socklen_t client_addr_len = sizeof(client_addr);
 
-    int client_socket = accept4(server_socket_, reinterpret_cast<struct sockaddr*>(&client_addr), &client_addr_len, SOCK_CLOEXEC | O_NONBLOCK);
+    const int client_socket = accept4(server_socket_, reinterpret_cast<struct sockaddr*>(&client_addr),
+            &client_addr_len, SOCK_CLOEXEC | O_NONBLOCK);
     if (client_socket < 0) {
         // Non-blocking mode or an actual error
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
@@ -58,12 +61,11 @@ int TcpNetworkManager::acceptConnection() {
     return -1;
 }
 
-std::pair<char*, ssize_t> TcpNetworkManager::readData(int client_socket) {
+std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket) {
     fd_set read_fds;
     struct timeval tv {};
-    ssize_t bytes_read {-1};
-    static char buffer[1024] {}; // Adjust buffer size as needed
-//    std::array<char, 1024> buffer {};
+    std::vector<char> buffer(MaxBufferSize);
+    bool disconnect{false};
 
     FD_ZERO(&read_fds);
     FD_SET(client_socket, &read_fds);
@@ -73,31 +75,26 @@ std::pair<char*, ssize_t> TcpNetworkManager::readData(int client_socket) {
     tv.tv_usec = 0;
 
     if (select(client_socket + 1, &read_fds, nullptr, nullptr, &tv) >= 0 ) {
-        memset(buffer, 0, sizeof(buffer));
-        bytes_read = ::read(client_socket, buffer, sizeof(buffer) - 1);
-//        bytes_read = ::read(client_socket, buffer.data(), sizeof(buffer.max_size()) - 1);
-//        std::fill(buffer.begin(), buffer.end(), 0);
+        ssize_t bytes_read = ::read(client_socket, buffer.data(), buffer.size() - 1);
         if (bytes_read > 0) {
-//            return {buffer.data(), bytes_read};
-            return {buffer, bytes_read};
+            buffer.resize(bytes_read);
         } else if (bytes_read == 0) {
-            bytes_read = -1;
+            disconnect = true;
         } else {
+            buffer.clear();
             if (errno != EWOULDBLOCK && errno != EAGAIN) {
                 LOG_ERROR("[Message Server] Reading failed");
             }
-            bytes_read = 0;
         }
     } else {
         LOG_ERROR("[Message Server] Listening to socket failed");
     }
 
-//    return {buffer.data(), bytes_read};
-    return {buffer, bytes_read};
+    return {buffer, disconnect};
 }
 
-std::error_code TcpNetworkManager::sendData(int client_socket, const void* data, size_t data_size) {
-    if (send(client_socket, data, data_size, 0) < 0) {
+std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector<char> data) {
+    if (send(client_socket, data.data(), data.size(), 0) < 0) {
         return {errno, std::generic_category()};
     }
 

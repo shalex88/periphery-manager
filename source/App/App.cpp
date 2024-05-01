@@ -22,7 +22,7 @@ void App::run() {
     auto temp_sensor = std::make_shared<TemperatureSensor>(hw_interface, protocol_interface);
     temp_sensor->init();
 
-    uint32_t cores_num = sysconf(_SC_NPROCESSORS_ONLN);
+    const uint32_t cores_num = sysconf(_SC_NPROCESSORS_ONLN);
     LOG_INFO("CPU cores number is {}", cores_num);
     auto scheduler = std::make_shared<Scheduler>(cores_num);
     scheduler->init();

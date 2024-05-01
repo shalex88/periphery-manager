@@ -45,7 +45,7 @@ void MessageServer::runServer() {
     LOG_INFO("[Message Server] Started");
 
     while (keep_running_) {
-        if (int client_socket = network_manager_->acceptConnection(); client_socket >= 0) {
+        if (const int client_socket = network_manager_->acceptConnection(); client_socket >= 0) {
             LOG_TRACE("[Message Server] Client {} connected", client_socket);
             std::lock_guard<std::mutex> lock(client_threads_mutex_);
             client_threads_.emplace_back(&MessageServer::handleClient, this, client_socket);
@@ -55,11 +55,14 @@ void MessageServer::runServer() {
 
 void MessageServer::handleClient(int client_socket) {
     while (keep_running_) {
-        auto data = network_manager_->readData(client_socket);
-        if (data.second > 0) {
-            parseMessage(client_socket, data.first, data.second);
-        } else if (data.second < 0) {
+        auto [data, disconnect] = network_manager_->readData(client_socket);
+
+        if (disconnect) {
             break;
+        }
+
+        if (!data.empty()) {
+            parseMessage(client_socket, data);
         }
     }
 
@@ -67,34 +70,31 @@ void MessageServer::handleClient(int client_socket) {
     LOG_TRACE("[Message Server] Client {} disconnected", client_socket);
 }
 
-bool MessageServer::parseMessage(int client, const char* buffer, size_t length) {
-    // Initial part of the message
-    std::ostringstream os;
-    os << "[Message Server] Received from client " << client <<" (" << length << " bytes): ";
-
-    os << std::string(buffer) << " [";
-
-    // Loop to print the byte values
-    for (int i = 0; i < length; i++) {
-        os << static_cast<int>(static_cast<unsigned char>(buffer[i]));
-        if (i < length - 1) {
-            os << " ";
-        }
-    }
-
-    // Closing the byte values and the entire message
-    os << "]";
-
-    LOG_TRACE("{}", os.str());
+bool MessageServer::parseMessage(const int client, const std::vector<char>& buffer) {
+    LOG_TRACE("{}", printMessage(client, buffer));
 
     auto requester = std::make_shared<InputInterface::Requester>(shared_from_this(), client);
-    command_dispatcher_->dispatchCommand(requester, std::string(buffer));
+    command_dispatcher_->dispatchCommand(requester, std::string(buffer.begin(), buffer.end()));
 
     return true;
 }
 
+std::string MessageServer::printMessage(const int client, const std::vector<char>& buffer) const {
+    std::ostringstream os;
+    os << "[Message Server] Received from client " << client <<" (" << buffer.size() << " bytes): ";
+    os << std::string(buffer.begin(), buffer.end()) << " [";
+
+    for (const auto& c : buffer) {
+        os << static_cast<int>(static_cast<unsigned char>(c)) << " ";
+    }
+
+    os << "]";
+    return os.str();
+}
+
 void MessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) {
-    auto ec = network_manager_->sendData(requester->id_, response.c_str(), response.size());
+    std::vector<char> data(response.begin(), response.end());
+    auto ec = network_manager_->sendData(requester->source_id, data);
     if (ec) {
         LOG_ERROR("[Message Server] {}", ec.message());
     }
