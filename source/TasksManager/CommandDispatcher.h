@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
-#include "TasksManager/Command.h"
+#include "TasksManager/CommandInterface.h"
 #include "TasksManager/Scheduler.h"
 #include "AppInputs/InputInterface.h"
 

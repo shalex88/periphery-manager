@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
-#include "TasksManager/Command.h"
+#include "TasksManager/CommandInterface.h"
 #include "AppInputs/InputInterface.h"
 
 class Scheduler {

@@ -4,6 +4,7 @@
 #include "Network/TcpNetworkManager.h"
 #include "PeripheryManager/HwMock.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
+#include "TemperatureSensor/TemperatureSensorCommands.h"
 #include <csignal>
 
 std::atomic<bool> App::keep_running_ = true;
