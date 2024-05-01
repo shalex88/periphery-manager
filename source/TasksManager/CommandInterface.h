@@ -8,17 +8,16 @@
 
 class CommandInterface {
 public:
-    virtual void execute(std::shared_ptr<InputInterface::Requester> requester) = 0;
     virtual ~CommandInterface() = default;
+    virtual void execute(std::shared_ptr<InputInterface::Requester> requester) = 0;
 };
 
-class DummyCommand : public CommandInterface {
+class CommandFake : public CommandInterface {
 public:
+    ~CommandFake() override = default;
     void execute(std::shared_ptr<InputInterface::Requester> requester) override {
         requester->input_interface_->sendResponse(requester, "Ack");
     }
-
-    ~DummyCommand() override = default;
 };
 
 #endif //PERIPHERY_MANAGER_COMMANDINTERFACE_H

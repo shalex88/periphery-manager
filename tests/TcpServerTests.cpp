@@ -91,7 +91,7 @@ TEST_F(TcpServerTests, ServerReturnsNackForUnregisteredCommands) {
 }
 
 TEST_F(TcpServerTests, ServerReturnsAckForRegisteredCommands) {
-    dispatcher->registerCommand("test", std::make_shared<DummyCommand>());
+    dispatcher->registerCommand("test", std::make_shared<CommandFake>());
     tcp_server->init();
 
     // Wait for the server to be ready

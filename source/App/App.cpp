@@ -2,7 +2,6 @@
 #include "AppInputs/MessageServer.h"
 #include "App/SignalHandler.h"
 #include "Network/TcpNetworkManager.h"
-#include "PeripheryManager/HwMock.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "TemperatureSensor/TemperatureSensorCommands.h"
 #include <csignal>
@@ -17,7 +16,7 @@ void App::shutdown() {
 void App::run() {
     SignalHandler::setupSignalHandling();
 
-    auto hw_interface = std::make_shared<HwMock>();
+    auto hw_interface = std::make_shared<HwFake>();
 //    auto hw_interface = std::make_shared<TcpClient>("127.0.0.1", 12345);
     auto protocol_interface = std::make_shared<TemperatureSensorProtocol>();
     auto temp_sensor = std::make_shared<TemperatureSensor>(hw_interface, protocol_interface);
@@ -31,7 +30,7 @@ void App::run() {
     auto dispatcher = std::make_shared<CommandDispatcher>(scheduler);
     dispatcher->registerCommand("stop", std::make_shared<StopCommand>());
     dispatcher->registerCommand("temp", std::make_shared<GetTempCommand>(temp_sensor));
-    dispatcher->registerCommand("test", std::make_shared<DummyCommand>());
+    dispatcher->registerCommand("test", std::make_shared<CommandFake>());
 
     const int tcp_server_port = 12345;
     auto network_manager = std::make_shared<TcpNetworkManager>(tcp_server_port);
