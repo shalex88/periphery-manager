@@ -17,18 +17,20 @@ protected:
     virtual ~AbstractDevice() = default;
     std::optional<std::vector<uint8_t>> getDataSyncronously(const std::vector<uint8_t> &tx_data);
     std::future<std::vector<uint8_t>> getDataAsynchronously(const std::vector<uint8_t> &tx_data);
+
 public:
     bool init();
     bool deinit();
+
 private:
+    std::vector<uint8_t> readData();
+    bool writeData(const std::vector<uint8_t> &tx_data);
+    bool isEnabled() const;
+    virtual bool enable() = 0;
+    virtual bool disable() = 0;
     std::shared_ptr<HwInterface> communication_interface_;
     std::shared_ptr<ProtocolInterface> protocol_interface_;
     bool is_enabled_{false};
-    std::vector<uint8_t> readData();
-    bool writeData(const std::vector<uint8_t> &tx_data);
-    virtual bool enable() = 0;
-    virtual bool disable() = 0;
-    bool isEnabled() const;
 };
 
 #endif //PERIPHERY_MANAGER_ABSTRACTDEVICE_H

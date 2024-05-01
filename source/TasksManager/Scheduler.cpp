@@ -9,21 +9,19 @@ Scheduler::~Scheduler() {
 
 void Scheduler::init() {
     for (size_t i = 0; i < thread_count_; ++i) {
-        // Create worker threads, each running the workerFunction.
         worker_threads_.emplace_back(&Scheduler::workerFunction, this);
     }
 }
 
 void Scheduler::deinit() {
     {
-        // Locking the queue with a mutex to safely change the stop flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
-        stop_ = true; // Set the stop flag to true.
+        stop_ = true;
     }
-    task_available_condition_.notify_all(); // Notify all worker threads to wake up, potentially to stop.
-    for (auto& thread: worker_threads_) { // For each worker thread,
+    task_available_condition_.notify_all();
+    for (auto& thread: worker_threads_) {
         if(thread.joinable()) {
-            thread.join(); // wait for it to finish execution.
+            thread.join();
         }
     }
 
