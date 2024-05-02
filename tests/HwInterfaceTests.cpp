@@ -3,14 +3,10 @@
 /* Add your project include files here */
 #include "PeripheryManager/HwInterface.h"
 
-// TEST PLAN
-// + Read 8bit vector from interface
-// + Write 8bit vector to the interface
-
 class HwMock : public HwInterface {
 public:
     MOCK_METHOD0(read, std::vector<uint8_t>());
-    MOCK_METHOD1(write, uint8_t(const std::vector<uint8_t>&));
+    MOCK_METHOD1(write, size_t(const std::vector<uint8_t>&));
     MOCK_METHOD0(init, bool());
     MOCK_METHOD0(deinit, bool());
 };

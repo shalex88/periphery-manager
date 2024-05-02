@@ -33,7 +33,7 @@ public:
             server_thread_.join();
         }
 
-        std::cout << "[TCP Server] Stopped" << std::endl;
+        std::cout << "[Loopback TCP Server] Stopped" << std::endl;
     }
 
     ~LoopbackTcpServer() {
@@ -67,7 +67,7 @@ private:
         }
         listen(server_socket_, 5);
 
-        std::cout << "[TCP Server] Started" << std::endl;
+        std::cout << "[Loopback TCP Server] Started" << std::endl;
 
         while (!terminate_server_) {
             sockaddr_in client_addr{};
@@ -77,7 +77,7 @@ private:
                 if (terminate_server_) break; // Accept can fail if server is stopped
                 continue;
             }
-            std::cout << "[TCP Server] Client connected" << std::endl;
+            std::cout << "[Loopback TCP Server] Client connected" << std::endl;
 
             handleClient(client_socket);
         }
@@ -91,14 +91,14 @@ private:
                 break; // Client disconnected or error
             }
             // Echo received data back to client
-            std::cout << "[TCP Server] Loopback: ";
+            std::cout << "[Loopback TCP Server] Loopback: ";
             for (int i{}; i < bytes_read; i++) {
                 std::cout << static_cast<int>(buffer[i]) << " ";
             }
             std::cout << std::endl;
             send(client_socket, buffer, bytes_read, 0);
         }
-        std::cout << "[TCP Server] Client disconnected" << std::endl;
+        std::cout << "[Loopback TCP Server] Client disconnected" << std::endl;
         close(client_socket);
     }
 };

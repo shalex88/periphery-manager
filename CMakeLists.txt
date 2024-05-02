@@ -4,6 +4,7 @@ include(cmake/SetVersion.cmake)
 project(periphery-manager LANGUAGES CXX VERSION ${VERSION})
 
 find_package(spdlog CONFIG REQUIRED)
+find_package(asio CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +17,8 @@ function(link_common_libraries target)
             PRIVATE
             #Add your libs here
             spdlog::spdlog
+            asio
+            asio::asio
     )
 endfunction(link_common_libraries)
 

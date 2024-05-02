@@ -1,0 +1,242 @@
+@startuml periphery-manager
+'https://plantuml.com/class-diagram
+skinparam classAttributeIconSize 0
+
+header
+    periphery-manager - Class Diagram
+endheader
+
+package "Logger" {
+    object spdlog <<Library>> {
+    }
+
+    object fmt <<Library>> {
+    }
+
+    interface LoggerInterface {
+        +log(LogLevel level, const std::string &format, Args &&... args) : void
+        #{abstract}logImpl(LogLevel level, const std::string &msg) : void
+    }
+
+    class Logger {
+    }
+
+    class SpdLogAdapter implements LoggerInterface {
+        +logImpl()
+    }
+
+    class StdoutAdapter implements LoggerInterface {
+        +logImpl()
+    }
+
+    Logger ..> LoggerInterface
+    Logger ..> SpdLogAdapter
+    SpdLogAdapter ..> spdlog
+    LoggerInterface ..> fmt
+}
+
+package "Slave Device" {
+    abstract AbstractDevice {
+        -hw_interface_ : std::shared_ptr<HwInterface>
+        -protocol_interface_ : std::shared_ptr<ProtocolInterface>
+        +init() : bool
+        +deinit() : bool
+        #AbstractDevice(std::shared_ptr<HwInterface> hw_interface,
+            std::shared_ptr<ProtocolInterface> protocol_interface)
+        #getDataSyncroniously(const std::vector<uint8_t> &tx_data) : const std::optional<std::vector<uint8_t>>
+        #getDataAsyncroniously(const std::vector<uint8_t> &tx_data) : const std::future<std::vector<uint8_t>>
+        -writeData(const std::vector<uint8_t> &tx_data) : const bool
+        -readData() : const std::vector<uint8_t>
+        -isEnabled() : const bool
+        -{abstract}enable() : bool
+        -{abstract}disable() : bool
+    }
+
+    class TemperatureSensor implements AbstractDevice {
+        +TemperatureSensor(std::shared_ptr<HwInterface> hw_interface,
+            std::shared_ptr<ProtocolInterface> protocol_interface)
+        +getStatus() : const std::optional<uint8_t>
+        +getHumidity() : const std::optional<uint16_t>
+        +getTemperature() : const std::optional<uint8_t>
+        +getTemperatureAsynchronously() : const uint8_t
+        -enable() : bool
+        -disable() : bool
+    }
+
+    interface HwInterface {
+        +{abstract} write(const std::vector<uint8_t>& data) : uint8_t
+        +{abstract} read() : std::vector<uint8_t>
+        +{abstract} init() : bool
+        +{abstract} deinit() : bool
+    }
+
+    class HwFake implements HwInterface {
+        +write(const std::vector<uint8_t>& data) : uint8_t
+        +read() : std::vector<uint8_t>
+        +init() : bool
+        +deinit() : bool
+    }
+
+    class Uart implements HwInterface {
+        +write(const std::vector<uint8_t>& data) : uint8_t
+        +read() : std::vector<uint8_t>
+        +init() : bool
+        +deinit() : bool
+    }
+
+    class Ethernet implements HwInterface {
+        +write(const std::vector<uint8_t>& data) : uint8_t
+        +read() : std::vector<uint8_t>
+        +init() : bool
+        +deinit() : bool
+    }
+
+    interface ProtocolInterface {
+        +{abstract}packData(const std::vector<uint8_t>& tx_data) : const std::vector<uint8_t>
+        +{abstract}unpackData(const std::vector<uint8_t>& rx_packet) : const std::vector<uint8_t>
+    }
+
+    class ProtocolFake implements ProtocolInterface {
+        +packData(const std::vector<uint8_t>& tx_data) : const std::vector<uint8_t>
+        +unpackData(const std::vector<uint8_t>& rx_packet) : const std::vector<uint8_t>
+    }
+
+    class TemperatureSensorProtocol implements ProtocolInterface {
+        +packData(const std::vector<uint8_t>& tx_data) : const std::vector<uint8_t>
+        +unpackData(const std::vector<uint8_t>& rx_packet) : const std::vector<uint8_t>
+    }
+
+    AbstractDevice::hw_interface_ "Strategy" o-- HwInterface
+    AbstractDevice::protocol_interface_ "Strategy" o-- ProtocolInterface
+}
+
+package "Events Mechanism" {
+    struct Requester {
+        +std::shared_ptr<InputInterface> source;
+        +int source_id;
+        +Requester(std::shared_ptr<InputInterface> input_interface, int id)
+    }
+
+    interface "InputInterface : std::enable_shared_from_this<InputInterface>" {
+    +{abstract} sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) : bool
+    }
+    
+    interface NetworkInterface {
+        +{abstract}init() : std::error_code
+        +{abstract}acceptConnection() : int
+        +{abstract}readData(int client_socket) : std::pair<std::vector<char>, bool>
+        +{abstract}sendData(int client_socket, const std::vector<char> data) : std::error_code
+        +{abstract}closeConnection() : void
+        +{abstract}getServerSocket() : int
+    }
+
+    class TcpNetworkManager implements NetworkInterface {
+        +init() : std::error_code
+        +acceptConnection() : int
+        +readData(int client_socket) : std::pair<std::vector<char>, bool>
+        +sendData(int client_socket, const std::vector<char> data) : std::error_code
+        +closeConnection() : void
+        +getServerSocket() : int
+    }
+        
+    class MessageServer implements "InputInterface : std::enable_shared_from_this<InputInterface>" {
+        -command_dispatcher_ : std::shared_ptr<CommandDispatcher>
+        -network_manager_ : std::shared_ptr<NetworkInterface>
+        -keep_running_ : std::atomic<bool>
+        -client_threads_ : std::list<std::thread>
+        -client_threads_mutex_ : std::mutex
+        -server_thread_ : std::thread
+        +init() : bool
+        +deinit() : bool
+        +sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) : void
+        -runServer() : void
+        -parseMessage(const int client, const std::vector<char>& buffer) : bool
+        -printMessage(const int client, const std::vector<char>& buffer) : const std::string
+        -handleClient(int client_socket) : void
+        -stopAllClientThreads() : void
+    }
+
+    rectangle "Command Pattern" {
+    class Scheduler {
+        -tasks_ : std::queue<std::shared_ptr<Task>> tasks_
+        -queue_mutex_ : std::mutex
+        -task_available_condition_ : std::condition_variable
+        -stop_ : bool
+        -worker_threads_ : std::vector<std::thread>
+        -thread_count_ : size_t
+        +Scheduler(size_t thread_count)
+        +workerFunction() : void
+        +init() : void
+        +deinit() : void
+        +enqueueTask(const std::shared_ptr<CommandInterface>& command) : void
+        +enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command) : void
+        +getRunningThreadCount() : const size_t
+    }
+
+    struct Task {
+        requester_ : std::shared_ptr<InputInterface>
+        command_ : std::shared_ptr<CommandInterface>
+        Task(std::shared_ptr<InputInterface::Requester> cmd_requester, std::shared_ptr<CommandInterface> cmd)
+    }
+
+    class CommandDispatcher {
+        -scheduler_ : std::shared_ptr<Scheduler>
+        -command_map_ : std::unordered_map<std::string, std::shared_ptr<CommandInterface>>
+        +registerCommand(const std::string& command_name, std::shared_ptr<CommandInterface> command) : void
+        +dispatchCommand(std::shared_ptr<InputInterface> requester, const std::string& command_name) : void
+        +dispatchCommand(const std::string& command_name) : void
+    }
+
+    interface CommandInterface {
+        +{abstract}execute(std::shared_ptr<InputInterface::Requester> requester)
+    }
+
+    class CommandFake implements CommandInterface {
+        +execute(std::shared_ptr<InputInterface::Requester> requester)
+    }
+
+    class StopCommand implements CommandInterface {
+        +execute(std::shared_ptr<InputInterface::Requester> requester)
+    }
+
+    class GetTempCommand implements CommandInterface {
+        -sensor_ : std::shared_ptr<TemperatureSensor>
+        +GetTempCommand(std::shared_ptr<TemperatureSensor> sensor)
+        +execute(std::shared_ptr<InputInterface::Requester> requester)
+    }
+
+    "InputInterface : std::enable_shared_from_this<InputInterface>" --> Requester
+    MessageServer::command_dispatcher_ o-- CommandDispatcher : command_dispatcher_->dispatchCommand(shared_from_this(), buffer) >
+    MessageServer::network_manager_ o-- TcpNetworkManager : command_dispatcher_->dispatchCommand(shared_from_this(), buffer) >
+    CommandDispatcher::scheduler_ o-- Scheduler : scheduler_->enqueueTask(requester, command) >
+    CommandDispatcher --> CommandInterface
+    Scheduler::tasks_ *-- Task
+    Scheduler --> CommandInterface : task->command_->execute(task->requester_) >
+    }
+}
+
+GetTempCommand::sensor_ o-- TemperatureSensor
+
+package "App Manager" {
+    class AppManager {
+    -keep_running_ : static std::atomic<bool>
+    +run() : void
+    +static shutdown()
+    }
+}
+
+"App Manager" --> "Events Mechanism"
+"App Manager" --> "Logger"
+"App Manager" --> "Slave Device"
+
+note as UserCode
+    **UserCode**
+    int main() {
+        App app;
+        app.run();
+
+        return EXIT_SUCCESS;
+    }
+end note
+
+@enduml
