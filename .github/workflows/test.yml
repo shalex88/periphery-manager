@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get project name
         run: |
@@ -26,13 +26,13 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build build --target ${{ env.PROJECT_NAME }}_test
+          cmake --build build --target ${{ env.PROJECT_NAME }}-tests
 
       - name: Test
         run: cd ./build/$sub_project && ./$bin
         env:
           sub_project: tests
-          bin: ${{ env.PROJECT_NAME }}_test
+          bin: ${{ env.PROJECT_NAME }}-tests
 
       - name: Create coverage reports
         if: github.event_name == 'push'
@@ -42,10 +42,12 @@ jobs:
           lcov --capture --directory . --output-file coverage.info
           lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --remove coverage.info '*/tests/*' --output-file coverage.info
+          lcov --remove coverage.info '*/build/*' --output-file coverage.info
           lcov --list coverage.info
+          rm -rf tests
 
       - name: Upload coverage reports to Codecov
         if: github.event_name == 'push'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
