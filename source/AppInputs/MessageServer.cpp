@@ -5,8 +5,12 @@
 #include <unistd.h>
 #include <utility>
 
-MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::shared_ptr<NetworkInterface> network_manager) :
-    command_dispatcher_(std::move(command_dispatcher)), network_manager_(std::move(network_manager)) {
+MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::vector<std::shared_ptr<NetworkInterface>> network_managers) :
+    command_dispatcher_(std::move(command_dispatcher)), network_managers_(std::move(network_managers)) {
+}
+
+MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::shared_ptr<NetworkInterface> network_manager)  :
+    command_dispatcher_(std::move(command_dispatcher)), network_managers_({std::move(network_manager)}) {
 }
 
 MessageServer::~MessageServer() {
@@ -25,7 +29,9 @@ bool MessageServer::deinit() {
 
     stopAllClientThreads();
 
-    network_manager_->closeConnection();
+    for(const auto& network_manager : network_managers_) {
+        network_manager->closeConnection();
+    }
 
     if (server_thread_.joinable()) {
         server_thread_.join();
@@ -37,25 +43,28 @@ bool MessageServer::deinit() {
 }
 
 void MessageServer::runServer() {
-    auto ec = network_manager_->init();
-    if (ec) {
-        LOG_ERROR("[Message Server] {}", ec.message());
+    for (const auto& network_manager : network_managers_) {
+        auto ec = network_manager->init();
+        if (ec) {
+            LOG_ERROR("[Message Server] {}", ec.message());
+        }
     }
 
     LOG_INFO("[Message Server] Started");
 
     while (keep_running_) {
-        if (const int client = network_manager_->acceptConnection(); client > 0) {
-            LOG_TRACE("[Message Server] Client {} connected", client);
-            std::lock_guard<std::mutex> lock(client_threads_mutex_);
-            client_threads_.emplace_back(&MessageServer::handleClient, this, client);
+        for (const auto& network_manager: network_managers_) {
+            if (const auto client = network_manager->acceptConnection(); client > 0) {
+                std::lock_guard<std::mutex> lock(client_threads_mutex_);
+                client_threads_.emplace_back(&MessageServer::handleClient, this, network_manager, client);
+            }
         }
     }
 }
 
-void MessageServer::handleClient(int client) {
+void MessageServer::handleClient(std::shared_ptr<NetworkInterface> network_manager, int client) {
     while (keep_running_) {
-        auto [data, disconnect] = network_manager_->readData(client);
+        auto [data, disconnect] = network_manager->readData(client);
 
         if (disconnect) {
             break;
@@ -67,7 +76,6 @@ void MessageServer::handleClient(int client) {
     }
 
     close(client);
-    LOG_TRACE("[Message Server] Client {} disconnected", client);
 }
 
 bool MessageServer::parseMessage(const int client, const std::vector<char>& buffer) {
@@ -94,7 +102,7 @@ std::string MessageServer::printMessage(const int client, const std::vector<char
 
 void MessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) {
     const std::vector<char> data(response.begin(), response.end());
-    auto ec = network_manager_->sendData(requester->source_id, data);
+    auto ec = network_managers_[0]->sendData(requester->source_id, data);
     if (ec) {
         LOG_ERROR("[Message Server] {}", ec.message());
     }

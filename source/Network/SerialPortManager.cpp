@@ -29,7 +29,7 @@ std::error_code SerialPortManager::init() {
         return {errno, std::generic_category()};
     }
 
-    LOG_INFO("Slave terminal at: {}", ptsname(client_id_));
+    LOG_INFO("Listening for requests at {}", ptsname(client_id_));
 
     return {};
 }

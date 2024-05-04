@@ -12,6 +12,7 @@
 
 class MessageServer : public InputInterface {
 public:
+    MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::vector<std::shared_ptr<NetworkInterface>> network_managers);
     MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::shared_ptr<NetworkInterface> network_manager);
     ~MessageServer() override;
     bool init();
@@ -22,10 +23,10 @@ private:
     void runServer();
     bool parseMessage(const int client, const std::vector<char>& buffer);
     std::string printMessage(const int client, const std::vector<char>& buffer) const;
-    void handleClient(int client);
+    void handleClient(std::shared_ptr<NetworkInterface> network_managers, int client);
     void stopAllClientThreads();
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
-    std::shared_ptr<NetworkInterface> network_manager_;
+    std::vector<std::shared_ptr<NetworkInterface>> network_managers_;
     std::atomic<bool> keep_running_{false};
     std::list<std::thread> client_threads_;
     std::mutex client_threads_mutex_;

@@ -4,9 +4,11 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <thread>
+#include <arpa/inet.h>
 
-const int MaxBufferSize {1024};
-const int MaxClientsNum {5};
+const int MaxBufferSize{1024};
+const int MaxClientsNum{5};
+const std::string LocalHost{"127.0.0.1"};
 
 TcpNetworkManager::TcpNetworkManager(int port) :
         port_(port) {}
@@ -27,7 +29,7 @@ std::error_code TcpNetworkManager::init() {
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_addr.s_addr = inet_addr(LocalHost.c_str());
     server_addr.sin_port = htons(port_);
 
     if (bind(server_socket_, reinterpret_cast<struct sockaddr*>(&server_addr), sizeof(server_addr)) != 0) {
@@ -36,6 +38,8 @@ std::error_code TcpNetworkManager::init() {
     }
 
     listen(server_socket_, MaxClientsNum);
+
+    LOG_INFO("Listening for requests at {}:{}", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
 
     return {};
 }
