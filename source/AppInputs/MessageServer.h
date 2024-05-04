@@ -22,7 +22,7 @@ private:
     void runServer();
     bool parseMessage(const int client, const std::vector<char>& buffer);
     std::string printMessage(const int client, const std::vector<char>& buffer) const;
-    void handleClient(int client_socket);
+    void handleClient(int client);
     void stopAllClientThreads();
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
     std::shared_ptr<NetworkInterface> network_manager_;

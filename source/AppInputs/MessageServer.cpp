@@ -45,29 +45,29 @@ void MessageServer::runServer() {
     LOG_INFO("[Message Server] Started");
 
     while (keep_running_) {
-        if (const int client_socket = network_manager_->acceptConnection(); client_socket >= 0) {
-            LOG_TRACE("[Message Server] Client {} connected", client_socket);
+        if (const int client = network_manager_->acceptConnection(); client > 0) {
+            LOG_TRACE("[Message Server] Client {} connected", client);
             std::lock_guard<std::mutex> lock(client_threads_mutex_);
-            client_threads_.emplace_back(&MessageServer::handleClient, this, client_socket);
+            client_threads_.emplace_back(&MessageServer::handleClient, this, client);
         }
     }
 }
 
-void MessageServer::handleClient(int client_socket) {
+void MessageServer::handleClient(int client) {
     while (keep_running_) {
-        auto [data, disconnect] = network_manager_->readData(client_socket);
+        auto [data, disconnect] = network_manager_->readData(client);
 
         if (disconnect) {
             break;
         }
 
         if (!data.empty()) {
-            parseMessage(client_socket, data);
+            parseMessage(client, data);
         }
     }
 
-    close(client_socket);
-    LOG_TRACE("[Message Server] Client {} disconnected", client_socket);
+    close(client);
+    LOG_TRACE("[Message Server] Client {} disconnected", client);
 }
 
 bool MessageServer::parseMessage(const int client, const std::vector<char>& buffer) {
@@ -93,7 +93,7 @@ std::string MessageServer::printMessage(const int client, const std::vector<char
 }
 
 void MessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) {
-    std::vector<char> data(response.begin(), response.end());
+    const std::vector<char> data(response.begin(), response.end());
     auto ec = network_manager_->sendData(requester->source_id, data);
     if (ec) {
         LOG_ERROR("[Message Server] {}", ec.message());
