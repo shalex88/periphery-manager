@@ -13,7 +13,6 @@
 class MessageServer : public InputInterface {
 public:
     MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::vector<std::shared_ptr<NetworkInterface>> network_managers);
-    MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::shared_ptr<NetworkInterface> network_manager);
     ~MessageServer() override;
     bool init();
     bool deinit();

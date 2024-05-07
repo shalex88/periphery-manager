@@ -48,7 +48,6 @@ std::pair<std::vector<char>, bool> SerialPortManager::readData(int client) {
     const ssize_t bytes_read = ::read(client, buffer.data(), buffer.size() - 1);
     if (bytes_read > 0) {
         stripLineTerminators(buffer);
-        tcflush(client, TCIOFLUSH);
     } else if (bytes_read == 0) {
         disconnect = true;
     } else {
@@ -59,7 +58,7 @@ std::pair<std::vector<char>, bool> SerialPortManager::readData(int client) {
 }
 
 std::error_code SerialPortManager::sendData(int client, const std::vector<char> data) {
-    tcflush(client, TCIOFLUSH);
+    LOG_INFO("Sending to client: {}", std::string(data.begin(), data.end()));
 
     if (write(client, data.data(), data.size()) < 0) {
         return {errno, std::generic_category()};

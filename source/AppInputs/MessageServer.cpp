@@ -9,10 +9,6 @@ MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatch
     command_dispatcher_(std::move(command_dispatcher)), network_managers_(std::move(network_managers)) {
 }
 
-MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::shared_ptr<NetworkInterface> network_manager)  :
-    command_dispatcher_(std::move(command_dispatcher)), network_managers_({std::move(network_manager)}) {
-}
-
 MessageServer::~MessageServer() {
     deinit();
 }

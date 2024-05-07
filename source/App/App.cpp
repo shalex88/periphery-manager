@@ -34,7 +34,8 @@ void App::run() {
     dispatcher->registerCommand("test", std::make_shared<CommandFake>());
 
     const int tcp_server_port = 12345;
-    std::vector<std::shared_ptr<NetworkInterface>> network_managers {std::make_shared<SerialPortManager>(), std::make_shared<TcpNetworkManager>(tcp_server_port)};
+//    std::vector<std::shared_ptr<NetworkInterface>> network_managers {std::make_shared<SerialPortManager>(), std::make_shared<TcpNetworkManager>(tcp_server_port)};
+    std::vector<std::shared_ptr<NetworkInterface>> network_managers {std::make_shared<SerialPortManager>()};
     auto message_server = std::make_shared<MessageServer>(dispatcher, network_managers);
     message_server->init();
 

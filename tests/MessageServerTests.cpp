@@ -11,7 +11,7 @@ public:
     std::shared_ptr<Ethernet> tcp_client;
     std::shared_ptr<MessageServer> message_server;
     std::shared_ptr<Scheduler> scheduler;
-    std::shared_ptr<TcpNetworkManager> network_manager;
+    std::shared_ptr<NetworkInterface> network_manager;
     std::shared_ptr<CommandDispatcher> dispatcher;
     int port = 12345;
 
@@ -20,7 +20,7 @@ public:
         scheduler->init();
         dispatcher = std::make_shared<CommandDispatcher>(scheduler);
         network_manager = std::make_shared<TcpNetworkManager>(port);
-        message_server = std::make_shared<MessageServer>(dispatcher, network_manager);
+        message_server = std::make_shared<MessageServer>(dispatcher, std::vector{network_manager});
         tcp_client = std::make_shared<Ethernet>("127.0.0.1", port);
     }
 
