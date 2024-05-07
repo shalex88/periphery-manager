@@ -67,7 +67,7 @@ int TcpNetworkManager::acceptConnection() {
 
 std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket) {
     fd_set read_fds;
-    struct timeval tv {};
+    struct timeval timeval {};
     std::vector<char> buffer(MaxBufferSize);
     bool disconnect{false};
 
@@ -75,11 +75,11 @@ std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket
     FD_SET(client_socket, &read_fds);
 
     // Set timeout to 1 second. Adjust as needed for responsiveness vs. resource usage
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
+    timeval.tv_sec = 1;
+    timeval.tv_usec = 0;
 
-    if (select(client_socket + 1, &read_fds, nullptr, nullptr, &tv) >= 0 ) {
-        ssize_t bytes_read = ::read(client_socket, buffer.data(), buffer.size() - 1);
+    if (select(client_socket + 1, &read_fds, nullptr, nullptr, &timeval) >= 0 ) {
+        const ssize_t bytes_read = ::read(client_socket, buffer.data(), buffer.size() - 1);
         if (bytes_read > 0) {
             buffer.resize(bytes_read);
         } else if (bytes_read == 0) {
@@ -97,7 +97,7 @@ std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket
     return {buffer, disconnect};
 }
 
-std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector<char> data) {
+std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector<char>& data) {
     if (send(client_socket, data.data(), data.size(), 0) < 0) {
         return {errno, std::generic_category()};
     }
@@ -112,6 +112,3 @@ void TcpNetworkManager::closeConnection() {
     }
 }
 
-int TcpNetworkManager::getServerSocket() {
-    return server_socket_;
-}

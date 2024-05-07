@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "AppInputs/MessageServer.h"
+#include "TasksManager/MessageServer.h"
 #include "Network/TcpNetworkManager.h"
 #include "PeripheryManager/HwInterface.h"
 #include "PeripheryManager/Ethernet.h"
@@ -11,7 +11,7 @@ public:
     std::shared_ptr<Ethernet> tcp_client;
     std::shared_ptr<MessageServer> message_server;
     std::shared_ptr<Scheduler> scheduler;
-    std::shared_ptr<NetworkInterface> network_manager;
+    std::shared_ptr<InputInterface> network_manager;
     std::shared_ptr<CommandDispatcher> dispatcher;
     int port = 12345;
 

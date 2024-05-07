@@ -17,7 +17,7 @@ std::error_code SerialPortManager::init() {
     }
 
     // Get the current terminal attributes
-    struct termios term_attr;
+    struct termios term_attr{};
     if (tcgetattr(client_id_, &term_attr) < 0) {
         return {errno, std::generic_category()};
     }
@@ -57,20 +57,14 @@ std::pair<std::vector<char>, bool> SerialPortManager::readData(int client) {
     return {buffer, disconnect};
 }
 
-std::error_code SerialPortManager::sendData(int client, const std::vector<char> data) {
+std::error_code SerialPortManager::sendData(int client, const std::vector<char>& data) {
     LOG_INFO("Sending to client: {}", std::string(data.begin(), data.end()));
 
     if (write(client, data.data(), data.size()) < 0) {
         return {errno, std::generic_category()};
     }
 
-    tcflush(client, TCOFLUSH);
-
     return {};
-}
-
-int SerialPortManager::getServerSocket() {
-    return client_id_;
 }
 
 int SerialPortManager::acceptConnection() {

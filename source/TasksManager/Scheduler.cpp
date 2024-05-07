@@ -1,5 +1,4 @@
 #include "Scheduler.h"
-#include <utility>
 
 Scheduler::Scheduler(size_t thread_count) : thread_count_(thread_count) {}
 
@@ -15,7 +14,7 @@ void Scheduler::init() {
 
 void Scheduler::deinit() {
     {
-        std::unique_lock<std::mutex> lock(queue_mutex_);
+        const std::unique_lock<std::mutex> lock(queue_mutex_);
         stop_ = true;
     }
     task_available_condition_.notify_all();
@@ -46,19 +45,19 @@ void Scheduler::workerFunction() {
     }
 }
 
-void Scheduler::enqueueTask(const std::shared_ptr<CommandInterface>& command) {
+void Scheduler::enqueueTask(std::shared_ptr<CommandInterface> command) {
     {
-        std::unique_lock<std::mutex> lock(queue_mutex_);
+        const std::unique_lock<std::mutex> lock(queue_mutex_);
         auto task = std::make_shared<Task>(nullptr, command);
         tasks_.push(task);
     }
     task_available_condition_.notify_one();
 }
 
-void Scheduler::enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command) {
+void Scheduler::enqueueTask(std::shared_ptr<Requester> requester, std::shared_ptr<CommandInterface> command) {
     {
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        auto task = std::make_shared<Task>(std::move(requester), command);
+        const std::unique_lock<std::mutex> lock(queue_mutex_);
+        auto task = std::make_shared<Task>(requester, command);
         tasks_.push(task);
     }
     task_available_condition_.notify_one();

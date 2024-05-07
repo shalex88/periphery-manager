@@ -22,7 +22,7 @@ TEST_F(AppTests, CanRunAndBeStoppedGracefully) {
 
         // Signal that the thread has finished
         {
-            std::lock_guard<std::mutex> lock(condition_mutex);
+            const std::lock_guard<std::mutex> lock(condition_mutex);
             finished = true;
         }
         condition.notify_one();
@@ -30,7 +30,7 @@ TEST_F(AppTests, CanRunAndBeStoppedGracefully) {
 
     // Simulate stop condition after a delay
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    app.shutdown();
+    App::shutdown();
 
     // Wait for the thread to finish with a timeout
     std::unique_lock<std::mutex> lock(condition_mutex);

@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <utility>
 
-MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::vector<std::shared_ptr<NetworkInterface>> network_managers) :
+MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::vector<std::shared_ptr<InputInterface>> network_managers) :
     command_dispatcher_(std::move(command_dispatcher)), network_managers_(std::move(network_managers)) {
 }
 
@@ -52,38 +52,38 @@ void MessageServer::runServer() {
         for (const auto& network_manager: network_managers_) {
             if (const auto client = network_manager->acceptConnection(); client > 0) {
                 std::lock_guard<std::mutex> lock(client_threads_mutex_);
-                client_threads_.emplace_back(&MessageServer::handleClient, this, network_manager, client);
+                auto requester = std::make_shared<Requester>(network_manager, client);
+                client_threads_.emplace_back(&MessageServer::handleClient, this, std::move(requester));
             }
         }
     }
 }
 
-void MessageServer::handleClient(std::shared_ptr<NetworkInterface> network_manager, int client) {
+void MessageServer::handleClient(const std::shared_ptr<Requester> requester) {
     while (keep_running_) {
-        auto [data, disconnect] = network_manager->readData(client);
+        auto [data, disconnect] = requester->source->readData(requester->source_id);
 
         if (disconnect) {
             break;
         }
 
         if (!data.empty()) {
-            parseMessage(client, data);
+            parseMessage(requester, data);
         }
     }
 
-    close(client);
+    close(requester->source_id);
 }
 
-bool MessageServer::parseMessage(const int client, const std::vector<char>& buffer) {
-    LOG_TRACE("{}", printMessage(client, buffer));
+bool MessageServer::parseMessage(std::shared_ptr<Requester> requester, const std::vector<char>& buffer) {
+    LOG_TRACE("{}", printMessage(requester->source_id, buffer));
 
-    auto requester = std::make_shared<InputInterface::Requester>(shared_from_this(), client);
     command_dispatcher_->dispatchCommand(requester, std::string(buffer.begin(), buffer.end()));
 
     return true;
 }
 
-std::string MessageServer::printMessage(const int client, const std::vector<char>& buffer) const {
+std::string MessageServer::printMessage(int client, const std::vector<char>& buffer) const {
     std::ostringstream os;
     os << "[Message Server] Received from client " << client <<" (" << buffer.size() << " bytes): ";
     os << std::string(buffer.begin(), buffer.end()) << " [";
@@ -94,14 +94,6 @@ std::string MessageServer::printMessage(const int client, const std::vector<char
 
     os << "]";
     return os.str();
-}
-
-void MessageServer::sendResponse(std::shared_ptr<InputInterface::Requester> requester, const std::string& response) {
-    const std::vector<char> data(response.begin(), response.end());
-    auto ec = network_managers_[0]->sendData(requester->source_id, data);
-    if (ec) {
-        LOG_ERROR("[Message Server] {}", ec.message());
-    }
 }
 
 void MessageServer::stopAllClientThreads() {
