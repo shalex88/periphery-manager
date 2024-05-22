@@ -48,7 +48,7 @@ void Scheduler::workerFunction() {
 void Scheduler::enqueueTask(std::shared_ptr<CommandInterface> command) {
     {
         const std::unique_lock<std::mutex> lock(queue_mutex_);
-        auto task = std::make_shared<Task>(nullptr, command);
+        auto task = std::make_shared<Task>(nullptr, std::move(command));
         tasks_.push(task);
     }
     task_available_condition_.notify_one();
@@ -57,7 +57,7 @@ void Scheduler::enqueueTask(std::shared_ptr<CommandInterface> command) {
 void Scheduler::enqueueTask(std::shared_ptr<Requester> requester, std::shared_ptr<CommandInterface> command) {
     {
         const std::unique_lock<std::mutex> lock(queue_mutex_);
-        auto task = std::make_shared<Task>(requester, command);
+        auto task = std::make_shared<Task>(std::move(requester), std::move(command));
         tasks_.push(task);
     }
     task_available_condition_.notify_one();

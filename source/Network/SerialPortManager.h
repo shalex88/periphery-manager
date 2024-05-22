@@ -12,11 +12,12 @@ public:
     int acceptConnection() override;
     std::pair<std::vector<char>, bool> readData(int client) override;
     std::error_code sendData(int client, const std::vector<char>& data) override;
-    void closeConnection() override;
+    std::error_code closeConnection() override;
 
 private:
     int client_id_{-1};
     void stripLineTerminators(std::vector<char>& buffer);
+    bool validClient(int client) const;
 };
 
 #endif //PERIPHERY_MANAGER_SERIALPORTMANAGER_H

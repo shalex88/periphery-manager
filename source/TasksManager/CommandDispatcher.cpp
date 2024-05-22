@@ -17,11 +17,11 @@ void CommandDispatcher::dispatchCommand(std::shared_ptr<Requester> requester, co
     const std::lock_guard<std::mutex> lock(map_mutex_);
 
     if (auto it = command_map_.find(command_name); it != command_map_.end()) {
-        scheduler_->enqueueTask(requester, it->second);
+        scheduler_->enqueueTask(std::move(requester), it->second);
     } else {
         LOG_ERROR("Unknown command");
         UnknownCommand unknown_command;
-        unknown_command.execute(requester);
+        unknown_command.execute(std::move(requester));
     }
 }
 

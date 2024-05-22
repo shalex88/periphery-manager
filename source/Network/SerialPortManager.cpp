@@ -12,17 +12,15 @@ std::error_code SerialPortManager::init() {
         return {errno, std::generic_category()};
     }
 
-    if (grantpt(client_id_) || unlockpt(client_id_)) {
+    if ((grantpt(client_id_) != 0) || (unlockpt(client_id_) != 0)) {
         return {errno, std::generic_category()};
     }
 
-    // Get the current terminal attributes
     struct termios term_attr{};
     if (tcgetattr(client_id_, &term_attr) < 0) {
         return {errno, std::generic_category()};
     }
 
-    // Turn off local echo
     term_attr.c_lflag &= ~(ECHO | ECHOE | ECHONL);
 
     if (tcsetattr(client_id_, TCSANOW, &term_attr) < 0) {
@@ -34,30 +32,49 @@ std::error_code SerialPortManager::init() {
     return {};
 }
 
-void SerialPortManager::closeConnection() {
+std::error_code SerialPortManager::closeConnection() {
     if (client_id_ >= 0) {
         close(client_id_);
         client_id_ = -1;
+
+        return {};
     }
+
+    return make_error_code(std::errc::not_connected);
 }
 
 std::pair<std::vector<char>, bool> SerialPortManager::readData(int client) {
+    bool terminate{true};
+
+    if (!validClient(client)) {
+        return {{}, terminate};
+    }
+
     std::vector<char> buffer(MaxBufferSize);
-    bool disconnect{false};
 
     const ssize_t bytes_read = ::read(client, buffer.data(), buffer.size() - 1);
     if (bytes_read > 0) {
         stripLineTerminators(buffer);
+        terminate = false;
     } else if (bytes_read == 0) {
-        disconnect = true;
+        terminate = true;
     } else {
         buffer.clear();
+        terminate = false;
     }
 
-    return {buffer, disconnect};
+    return {buffer, terminate};
+}
+
+bool SerialPortManager::validClient(int client) const {
+    return (client == client_id_) && (client != -1);
 }
 
 std::error_code SerialPortManager::sendData(int client, const std::vector<char>& data) {
+    if (!validClient(client)) {
+        return make_error_code(std::errc::not_connected);
+    }
+
     LOG_INFO("Sending to client: {}", std::string(data.begin(), data.end()));
 
     if (write(client, data.data(), data.size()) < 0) {

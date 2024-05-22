@@ -12,7 +12,7 @@ public:
     int acceptConnection() override;
     std::pair<std::vector<char>, bool> readData(int client_socket) override;
     std::error_code sendData(int client_socket, const std::vector<char>& data) override;
-    void closeConnection() override;
+    std::error_code closeConnection() override;
 
 private:
     int server_socket_{-1};

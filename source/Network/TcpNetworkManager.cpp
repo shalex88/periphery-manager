@@ -105,10 +105,14 @@ std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector
     return {};
 }
 
-void TcpNetworkManager::closeConnection() {
+std::error_code TcpNetworkManager::closeConnection() {
     if (server_socket_ != -1) {
         close(server_socket_);
         server_socket_ = -1;
+
+        return {};
     }
+
+    return make_error_code(std::errc::not_connected);
 }
 

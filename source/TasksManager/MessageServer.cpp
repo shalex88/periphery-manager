@@ -26,7 +26,11 @@ bool MessageServer::deinit() {
     stopAllClientThreads();
 
     for(const auto& network_manager : network_managers_) {
-        network_manager->closeConnection();
+        auto ec = network_manager->closeConnection();
+        if (ec) {
+            LOG_ERROR("[Message Server] {}", ec.message());
+            return true;
+        }
     }
 
     if (server_thread_.joinable()) {
@@ -59,11 +63,11 @@ void MessageServer::runServer() {
     }
 }
 
-void MessageServer::handleClient(const std::shared_ptr<Requester> requester) {
+void MessageServer::handleClient(std::shared_ptr<Requester> requester) {
     while (keep_running_) {
-        auto [data, disconnect] = requester->source->readData(requester->source_id);
+        auto [data, terminate] = requester->source->readData(requester->source_id);
 
-        if (disconnect) {
+        if (terminate) {
             break;
         }
 
@@ -78,7 +82,7 @@ void MessageServer::handleClient(const std::shared_ptr<Requester> requester) {
 bool MessageServer::parseMessage(std::shared_ptr<Requester> requester, const std::vector<char>& buffer) {
     LOG_TRACE("{}", printMessage(requester->source_id, buffer));
 
-    command_dispatcher_->dispatchCommand(requester, std::string(buffer.begin(), buffer.end()));
+    command_dispatcher_->dispatchCommand(std::move(requester), std::string(buffer.begin(), buffer.end()));
 
     return true;
 }
