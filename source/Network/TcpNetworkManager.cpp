@@ -4,9 +4,11 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <thread>
+#include <arpa/inet.h>
 
-const int MaxBufferSize {1024};
-const int MaxClientsNum {5};
+const int MaxBufferSize{1024};
+const int MaxClientsNum{5};
+const std::string LocalHost{"127.0.0.1"};
 
 TcpNetworkManager::TcpNetworkManager(int port) :
         port_(port) {}
@@ -27,7 +29,7 @@ std::error_code TcpNetworkManager::init() {
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_addr.s_addr = inet_addr(LocalHost.c_str());
     server_addr.sin_port = htons(port_);
 
     if (bind(server_socket_, reinterpret_cast<struct sockaddr*>(&server_addr), sizeof(server_addr)) != 0) {
@@ -36,6 +38,8 @@ std::error_code TcpNetworkManager::init() {
     }
 
     listen(server_socket_, MaxClientsNum);
+
+    LOG_INFO("Listening for requests at {}:{}", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
 
     return {};
 }
@@ -63,7 +67,7 @@ int TcpNetworkManager::acceptConnection() {
 
 std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket) {
     fd_set read_fds;
-    struct timeval tv {};
+    struct timeval timeval {};
     std::vector<char> buffer(MaxBufferSize);
     bool disconnect{false};
 
@@ -71,11 +75,11 @@ std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket
     FD_SET(client_socket, &read_fds);
 
     // Set timeout to 1 second. Adjust as needed for responsiveness vs. resource usage
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
+    timeval.tv_sec = 1;
+    timeval.tv_usec = 0;
 
-    if (select(client_socket + 1, &read_fds, nullptr, nullptr, &tv) >= 0 ) {
-        ssize_t bytes_read = ::read(client_socket, buffer.data(), buffer.size() - 1);
+    if (select(client_socket + 1, &read_fds, nullptr, nullptr, &timeval) >= 0 ) {
+        const ssize_t bytes_read = ::read(client_socket, buffer.data(), buffer.size() - 1);
         if (bytes_read > 0) {
             buffer.resize(bytes_read);
         } else if (bytes_read == 0) {
@@ -93,7 +97,7 @@ std::pair<std::vector<char>, bool> TcpNetworkManager::readData(int client_socket
     return {buffer, disconnect};
 }
 
-std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector<char> data) {
+std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector<char>& data) {
     if (send(client_socket, data.data(), data.size(), 0) < 0) {
         return {errno, std::generic_category()};
     }
@@ -101,13 +105,14 @@ std::error_code TcpNetworkManager::sendData(int client_socket, const std::vector
     return {};
 }
 
-void TcpNetworkManager::closeConnection() {
+std::error_code TcpNetworkManager::closeConnection() {
     if (server_socket_ != -1) {
         close(server_socket_);
         server_socket_ = -1;
+
+        return {};
     }
+
+    return make_error_code(std::errc::not_connected);
 }
 
-int TcpNetworkManager::getServerSocket() {
-    return server_socket_;
-}

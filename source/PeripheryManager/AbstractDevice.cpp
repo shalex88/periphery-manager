@@ -18,19 +18,17 @@ bool AbstractDevice::writeData(const std::vector<uint8_t> &tx_data) const {
 }
 
 std::optional<std::vector<uint8_t>> AbstractDevice::getDataSyncronously(const std::vector<uint8_t> &tx_data) const {
-    std::vector<uint8_t> respose_rx;
-
     if (!isEnabled()) {
         return std::nullopt;
     }
 
-    if (writeData(tx_data)) {
-        respose_rx = readData();
-        return respose_rx;
-    } else {
+    if (!writeData(tx_data)) {
         LOG_ERROR("Not all data was written");
         return std::nullopt;
     }
+
+    auto respose_rx = readData();
+    return respose_rx;
 }
 
 bool AbstractDevice::isEnabled() const {
