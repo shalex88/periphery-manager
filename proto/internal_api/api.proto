@@ -4,8 +4,8 @@ package api; // Namespace
 
 message CommandRequest {
   string action = 1;
-//  string type = 2;
-//  int32 id = 3;
-//  bool preprocessing = 4;
-//  bool postprocessing = 5;
+}
+
+message CommandResponse {
+  string action = 1;
 }
