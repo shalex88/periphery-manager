@@ -1,0 +1,10 @@
+{
+  "name": "periphery-manager",
+  "version": "@VERSION@",
+  "dependencies": [
+    "spdlog",
+    "fmt",
+    "abseil",
+    "protobuf"
+  ]
+}
