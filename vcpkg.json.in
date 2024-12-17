@@ -1,5 +1,5 @@
 {
-  "name": "periphery-manager",
+  "name": "@PROJECT_NAME@",
   "version": "@VERSION@",
   "dependencies": [
     "spdlog",

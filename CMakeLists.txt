@@ -1,7 +1,8 @@
+set(PROJECT_NAME periphery-manager)
 include(cmake/SetVersion.cmake)
 include(cmake/EnableVcpkg.cmake)
 cmake_minimum_required(VERSION 3.22)
-project(periphery-manager LANGUAGES CXX VERSION ${VERSION})
+project(${PROJECT_NAME} LANGUAGES CXX VERSION ${VERSION})
 
 add_compile_definitions(APP_NAME="${PROJECT_NAME}")
 
@@ -17,8 +18,8 @@ set(INCLUDE_DIR "include")
 set(PROTO_DIR "proto")
 set(GENERATED_DIR "generated")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/${GENERATED_DIR})
-find_package(absl REQUIRED)
-find_package(Protobuf REQUIRED)
+find_package(absl CONFIG REQUIRED)
+find_package(Protobuf CONFIG REQUIRED)
 file(GLOB_RECURSE PROTO_FILES CONFIGURE_DEPENDS "${PROTO_DIR}/*.proto")
 
 include_directories(${INCLUDE_DIR} ${SOURCE_DIR} ${CMAKE_BINARY_DIR}/${GENERATED_DIR} ${Protobuf_INCLUDE_DIRS})
@@ -33,7 +34,7 @@ function(link_common_libraries target)
             spdlog::spdlog
             absl::base
             protobuf::libprotoc
-            protobuf::libprotobuf
+            protobuf::libprotobuf-lite
     )
 endfunction(link_common_libraries)
 
