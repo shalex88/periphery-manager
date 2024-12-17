@@ -8,9 +8,9 @@
 
 const int MaxBufferSize {1024};
 
-Ethernet::Ethernet(const std::string &server_ip, int server_port) {
+Ethernet::Ethernet(const std::string &server_ip, int server_port)
+    : client_socket_(socket(AF_INET, SOCK_STREAM, 0)) {
     LOG_DEBUG("Creating a TCP client");
-    client_socket_ = socket(AF_INET, SOCK_STREAM, 0);
 
     if (client_socket_ != -1) {
         server_address_.sin_family = AF_INET;

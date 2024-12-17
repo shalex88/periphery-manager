@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "AppInputs/MessageServer.h"
+#include "TasksManager/MessageServer.h"
 #include "Network/TcpNetworkManager.h"
 #include "PeripheryManager/HwInterface.h"
 #include "PeripheryManager/Ethernet.h"
@@ -9,9 +9,9 @@
 class MessageServerTests : public testing::Test {
 public:
     std::shared_ptr<Ethernet> tcp_client;
-    std::shared_ptr<MessageServer> tcp_server;
+    std::shared_ptr<MessageServer> message_server;
     std::shared_ptr<Scheduler> scheduler;
-    std::shared_ptr<TcpNetworkManager> network_manager;
+    std::shared_ptr<InputInterface> network_manager;
     std::shared_ptr<CommandDispatcher> dispatcher;
     int port = 12345;
 
@@ -20,7 +20,7 @@ public:
         scheduler->init();
         dispatcher = std::make_shared<CommandDispatcher>(scheduler);
         network_manager = std::make_shared<TcpNetworkManager>(port);
-        tcp_server = std::make_shared<MessageServer>(dispatcher, network_manager);
+        message_server = std::make_shared<MessageServer>(dispatcher, std::vector{network_manager});
         tcp_client = std::make_shared<Ethernet>("127.0.0.1", port);
     }
 
@@ -31,12 +31,12 @@ public:
 };
 
 TEST_F(MessageServerTests, ServerCanStartAndStop) {
-    EXPECT_EQ(tcp_server->init(), true);
-    EXPECT_EQ(tcp_server->deinit(), true);
+    EXPECT_EQ(message_server->init(), true);
+    EXPECT_EQ(message_server->deinit(), true);
 }
 
 TEST_F(MessageServerTests, ServerCanBeConnectedTo) {
-    tcp_server->init();
+    message_server->init();
 
     // Wait for the server to be ready
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -45,7 +45,7 @@ TEST_F(MessageServerTests, ServerCanBeConnectedTo) {
 }
 
 TEST_F(MessageServerTests, ServerCanRecieveMultipleClients) {
-    tcp_server->init();
+    message_server->init();
 
     // Wait for the server to be ready
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -57,7 +57,7 @@ TEST_F(MessageServerTests, ServerCanRecieveMultipleClients) {
 }
 
 TEST_F(MessageServerTests, ServerCanBeWriteToAndReadFrom) {
-    tcp_server->init();
+    message_server->init();
 
     // Wait for the server to be ready
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -73,7 +73,7 @@ TEST_F(MessageServerTests, ServerCanBeWriteToAndReadFrom) {
 }
 
 TEST_F(MessageServerTests, ServerReturnsNackForUnregisteredCommands) {
-    tcp_server->init();
+    message_server->init();
 
 //    // Wait for the server to be ready
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -91,7 +91,7 @@ TEST_F(MessageServerTests, ServerReturnsNackForUnregisteredCommands) {
 
 TEST_F(MessageServerTests, ServerReturnsAckForRegisteredCommands) {
     dispatcher->registerCommand("test", std::make_shared<CommandFake>());
-    tcp_server->init();
+    message_server->init();
 
     // Wait for the server to be ready
     std::this_thread::sleep_for(std::chrono::seconds(2));

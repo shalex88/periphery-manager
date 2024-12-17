@@ -5,7 +5,7 @@
 
 class CommandMock : public CommandInterface {
 public:
-    MOCK_METHOD1(execute, void(std::shared_ptr<InputInterface::Requester>));
+    MOCK_METHOD1(execute, void(std::shared_ptr<Requester>));
 };
 
 class SchedulerTests : public testing::Test {

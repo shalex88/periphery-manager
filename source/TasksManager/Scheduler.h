@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 #include "TasksManager/CommandInterface.h"
-#include "AppInputs/InputInterface.h"
+#include "TasksManager/Requester.h"
 
 class Scheduler {
 public:
@@ -17,15 +17,15 @@ public:
     ~Scheduler();
     void init();
     void deinit();
-    void enqueueTask(const std::shared_ptr<CommandInterface>& command);
-    void enqueueTask(std::shared_ptr<InputInterface::Requester> requester, const std::shared_ptr<CommandInterface>& command);
+    void enqueueTask(std::shared_ptr<CommandInterface> command);
+    void enqueueTask(std::shared_ptr<Requester> requester, std::shared_ptr<CommandInterface> command);
     size_t getRunningThreadCount() const;
 
 private:
     struct Task {
-        std::shared_ptr<InputInterface::Requester> requester;
+        std::shared_ptr<Requester> requester;
         std::shared_ptr<CommandInterface> command;
-        Task(std::shared_ptr<InputInterface::Requester> cmd_requester, std::shared_ptr<CommandInterface> cmd)
+        Task(std::shared_ptr<Requester> cmd_requester, std::shared_ptr<CommandInterface> cmd)
                 : requester(std::move(cmd_requester)), command(std::move(cmd)) {}
     };
     std::queue<std::shared_ptr<Task>> tasks_;

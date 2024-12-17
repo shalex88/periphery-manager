@@ -1,7 +1,8 @@
 #include "App.h"
-#include "AppInputs/MessageServer.h"
+#include "TasksManager/MessageServer.h"
 #include "App/SignalHandler.h"
 #include "Network/TcpNetworkManager.h"
+#include "Network/SerialPortManager.h"
 #include "TemperatureSensor/TemperatureSensorProtocol.h"
 #include "TemperatureSensor/TemperatureSensorCommands.h"
 #include <csignal>
@@ -33,10 +34,9 @@ void App::run() {
     dispatcher->registerCommand("test", std::make_shared<CommandFake>());
 
     const int tcp_server_port = 12345;
-    auto network_manager = std::make_shared<TcpNetworkManager>(tcp_server_port);
-
-    auto tcp_server = std::make_shared<MessageServer>(dispatcher, network_manager);
-    tcp_server->init();
+    std::vector<std::shared_ptr<InputInterface>> network_managers {std::make_shared<SerialPortManager>(), std::make_shared<TcpNetworkManager>(tcp_server_port)};
+    auto message_server = std::make_shared<MessageServer>(dispatcher, network_managers);
+    message_server->init();
 
     while(keep_running_) {
         //TODO: bit
