@@ -29,11 +29,15 @@ void App::run() {
     scheduler->init();
 
     auto dispatcher = std::make_shared<CommandDispatcher>(scheduler);
-    dispatcher->registerCommand("stop", std::make_shared<StopCommand>());
-    dispatcher->registerCommand("temp", std::make_shared<GetTempCommand>(temp_sensor));
-    dispatcher->registerCommand("test", std::make_shared<CommandFake>());
+    api::CommandRequest request;
+    request.set_action("stop");
+    dispatcher->registerCommand(request, std::make_shared<StopCommand>());
+    request.set_action("temp");
+    dispatcher->registerCommand(request, std::make_shared<GetTempCommand>(temp_sensor));
+    request.set_action("test");
+    dispatcher->registerCommand(request, std::make_shared<CommandFake>());
 
-    const int tcp_server_port = 12345;
+    constexpr int tcp_server_port = 12345;
     std::vector<std::shared_ptr<InputInterface>> network_managers {std::make_shared<SerialPortManager>(), std::make_shared<TcpNetworkManager>(tcp_server_port)};
     auto message_server = std::make_shared<MessageServer>(dispatcher, network_managers);
     message_server->init();

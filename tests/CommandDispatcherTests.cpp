@@ -16,12 +16,13 @@ public:
         command_dispatcher(std::make_shared<CommandDispatcher>(scheduler)),
         command(std::make_shared<CommandMock>()) {
         scheduler->init();
+        command_name.set_action("command_mock");
     }
 
     std::shared_ptr<Scheduler> scheduler;
     std::shared_ptr<CommandDispatcher> command_dispatcher;
     std::shared_ptr<CommandMock> command;
-    std::string command_name = "command_mock";
+    api::CommandRequest command_name;
 };
 
 TEST_F(CommandDispatcherTests, CanBeCreated) {

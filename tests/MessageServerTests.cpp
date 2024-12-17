@@ -90,7 +90,9 @@ TEST_F(MessageServerTests, ServerReturnsNackForUnregisteredCommands) {
 }
 
 TEST_F(MessageServerTests, ServerReturnsAckForRegisteredCommands) {
-    dispatcher->registerCommand("test", std::make_shared<CommandFake>());
+    api::CommandRequest command;
+    command.set_action("test");
+    dispatcher->registerCommand(command, std::make_shared<CommandFake>());
     message_server->init();
 
     // Wait for the server to be ready
@@ -99,10 +101,10 @@ TEST_F(MessageServerTests, ServerReturnsAckForRegisteredCommands) {
     tcp_client->init();
 
     std::string request_str = "test";
-    std::vector<uint8_t>request {request_str.begin(),request_str.end()};
+    std::vector<uint8_t> request {request_str.begin(),request_str.end()};
     tcp_client->write(request);
 
     std::string expected_str = "Ack";
-    std::vector<uint8_t>expected {expected_str.begin(),expected_str.end()};
+    std::vector<uint8_t> expected {expected_str.begin(),expected_str.end()};
     EXPECT_EQ(tcp_client->read(), expected);
 }

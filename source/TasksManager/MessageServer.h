@@ -20,9 +20,9 @@ public:
 
 private:
     void runServer();
-    bool parseMessage(std::shared_ptr<Requester> requester, const std::vector<char>& buffer);
-    std::string printMessage(int client, const std::vector<char>& buffer) const;
-    void handleClient(std::shared_ptr<Requester> requester);
+    bool parseMessage(std::shared_ptr<Requester> requester, const std::vector<char>& buffer) const;
+    static std::string printMessage(int client, const std::vector<char>& buffer);
+    void handleClient(std::shared_ptr<Requester> requester) const;
     void stopAllClientThreads();
     std::shared_ptr<CommandDispatcher> command_dispatcher_;
     std::vector<std::shared_ptr<InputInterface>> network_managers_;

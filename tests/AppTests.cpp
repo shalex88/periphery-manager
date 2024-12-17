@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 /* Add your project include files here */
-#include "App/App.h"
 #include <thread>
 #include <future>
+#include "App/App.h"
 
 class AppTests : public testing::Test {
 public:
@@ -34,7 +34,7 @@ TEST_F(AppTests, CanRunAndBeStoppedGracefully) {
 
     // Wait for the thread to finish with a timeout
     std::unique_lock<std::mutex> lock(condition_mutex);
-    const int64_t timeout{15};
+    constexpr int64_t timeout{15};
     if(!condition.wait_for(lock, std::chrono::seconds(timeout), [&finished]{return finished;})) {
         if(app_thread.joinable()) {
             app_thread.detach();

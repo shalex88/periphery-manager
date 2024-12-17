@@ -4,6 +4,7 @@
 #include <string>
 #include <unistd.h>
 #include <utility>
+#include "proto/internal_api/api.pb.h"
 
 MessageServer::MessageServer(std::shared_ptr<CommandDispatcher> command_dispatcher, std::vector<std::shared_ptr<InputInterface>> network_managers) :
     command_dispatcher_(std::move(command_dispatcher)), network_managers_(std::move(network_managers)) {
@@ -26,8 +27,7 @@ bool MessageServer::deinit() {
     stopAllClientThreads();
 
     for(const auto& network_manager : network_managers_) {
-        auto ec = network_manager->closeConnection();
-        if (ec) {
+        if (const auto ec = network_manager->closeConnection()) {
             LOG_ERROR("[Message Server] {}", ec.message());
             return true;
         }
@@ -44,8 +44,7 @@ bool MessageServer::deinit() {
 
 void MessageServer::runServer() {
     for (const auto& network_manager : network_managers_) {
-        auto ec = network_manager->init();
-        if (ec) {
+        if (const auto ec = network_manager->init()) {
             LOG_ERROR("[Message Server] {}", ec.message());
         }
     }
@@ -63,7 +62,7 @@ void MessageServer::runServer() {
     }
 }
 
-void MessageServer::handleClient(std::shared_ptr<Requester> requester) {
+void MessageServer::handleClient(std::shared_ptr<Requester> requester) const {
     while (keep_running_) {
         auto [data, terminate] = requester->source->readData(requester->source_id);
 
@@ -79,15 +78,21 @@ void MessageServer::handleClient(std::shared_ptr<Requester> requester) {
     close(requester->source_id);
 }
 
-bool MessageServer::parseMessage(std::shared_ptr<Requester> requester, const std::vector<char>& buffer) {
+bool MessageServer::parseMessage(std::shared_ptr<Requester> requester, const std::vector<char>& buffer) const {
     LOG_TRACE("{}", printMessage(requester->source_id, buffer));
 
-    command_dispatcher_->dispatchCommand(std::move(requester), std::string(buffer.begin(), buffer.end()));
+    const auto request_str = std::string(buffer.begin(), buffer.end());
+
+    if (api::CommandRequest deserializedRequest; !deserializedRequest.ParseFromString(request_str)) {
+        LOG_ERROR("[MessageServer] Failed to parse CommandRequest");
+    } else {
+        command_dispatcher_->dispatchCommand(std::move(requester), deserializedRequest);
+    }
 
     return true;
 }
 
-std::string MessageServer::printMessage(int client, const std::vector<char>& buffer) const {
+std::string MessageServer::printMessage(int client, const std::vector<char>& buffer) {
     std::ostringstream os;
     os << "[Message Server] Received from client " << client <<" (" << buffer.size() << " bytes): ";
     os << std::string(buffer.begin(), buffer.end()) << " [";

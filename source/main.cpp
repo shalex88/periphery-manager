@@ -7,8 +7,12 @@ int main() {
 
     LOG_INFO("{} {}.{}.{}", APP_NAME, APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
-    App app;
-    app.run();
+    try {
+        App::run();
+    } catch (const std::exception& e) {
+        LOG_ERROR("{}", e.what());
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }

@@ -1,4 +1,4 @@
-# pip install protobuf
+# sudo apt install python3-protobuf
 import sys
 import socket
 
