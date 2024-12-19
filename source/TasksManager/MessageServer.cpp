@@ -84,7 +84,9 @@ bool MessageServer::parseMessage(std::shared_ptr<Requester> requester, const std
     const auto request_str = std::string(buffer.begin(), buffer.end());
 
     if (api::CommandRequest deserializedRequest; !deserializedRequest.ParseFromString(request_str)) {
-        LOG_ERROR("[MessageServer] Failed to parse CommandRequest");
+        LOG_ERROR("[MessageServer] Failed to parse the request");
+        UnknownCommand unknown_command;
+        unknown_command.execute(std::move(requester));
     } else {
         command_dispatcher_->dispatchCommand(std::move(requester), deserializedRequest);
     }

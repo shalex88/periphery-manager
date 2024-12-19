@@ -72,6 +72,7 @@ TEST_F(MessageServerTests, ServerCanBeWriteToAndReadFrom) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
+// FIXME: Stuck
 TEST_F(MessageServerTests, ServerReturnsNackForUnregisteredCommands) {
     message_server->init();
 
@@ -80,19 +81,18 @@ TEST_F(MessageServerTests, ServerReturnsNackForUnregisteredCommands) {
 
     tcp_client->init();
 
-    std::string request_str = "test";
-    std::vector<uint8_t>request {request_str.begin(),request_str.end()};
+    api::CommandRequest command;
+    command.set_action("test");
+    auto serialized_command = command.SerializeAsString();
+    std::vector<uint8_t> request {serialized_command.begin(),serialized_command.end()};
     tcp_client->write(request);
 
     std::string expected_str = "Nack";
-    std::vector<uint8_t>expected {expected_str.begin(),expected_str.end()};
+    std::vector<uint8_t> expected {expected_str.begin(),expected_str.end()};
     EXPECT_EQ(tcp_client->read(), expected);
 }
 
 TEST_F(MessageServerTests, ServerReturnsAckForRegisteredCommands) {
-    api::CommandRequest command;
-    command.set_action("test");
-    dispatcher->registerCommand(command, std::make_shared<CommandFake>());
     message_server->init();
 
     // Wait for the server to be ready
@@ -100,8 +100,11 @@ TEST_F(MessageServerTests, ServerReturnsAckForRegisteredCommands) {
 
     tcp_client->init();
 
-    std::string request_str = "test";
-    std::vector<uint8_t> request {request_str.begin(),request_str.end()};
+    api::CommandRequest command;
+    command.set_action("test");
+    dispatcher->registerCommand(command, std::make_shared<CommandFake>());
+    auto serialized_command = command.SerializeAsString();
+    std::vector<uint8_t> request {serialized_command.begin(),serialized_command.end()};
     tcp_client->write(request);
 
     std::string expected_str = "Ack";
