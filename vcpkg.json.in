@@ -5,6 +5,7 @@
     "spdlog",
     "fmt",
     "abseil",
-    "protobuf"
+    "protobuf",
+    "grpc"
   ]
 }

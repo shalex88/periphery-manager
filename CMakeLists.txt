@@ -20,6 +20,7 @@ set(GENERATED_DIR "generated")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/${GENERATED_DIR})
 find_package(absl CONFIG REQUIRED)
 find_package(Protobuf CONFIG REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
 file(GLOB_RECURSE PROTO_FILES CONFIGURE_DEPENDS "${PROTO_DIR}/*.proto")
 
 include_directories(${INCLUDE_DIR} ${SOURCE_DIR} ${CMAKE_BINARY_DIR}/${GENERATED_DIR} ${Protobuf_INCLUDE_DIRS})
@@ -35,6 +36,7 @@ function(link_common_libraries target)
             absl::base
             protobuf::libprotoc
             protobuf::libprotobuf-lite
+            gRPC::grpc++
     )
 endfunction(link_common_libraries)
 
